@@ -2,7 +2,11 @@
 
 ## Motivation and purpose
 
-TBC
+Our role: Student group
+
+Target audience: Various interest groups including demographers, sociologists, and public health organizations
+
+Life expectancy is one of the most important metrics that gauge the well-being of a population, capturing many aspects of public health with its figure. As it is the metric that unequivocally states the average age of death, many research groups, such as demographers and sociologists, are keen on following its trend to assess the conditions of population health. In order to provide an effective tool for such research efforts, our group is proposing to build a data visualization app that will enable the users to freely explore the dataset on global population with a focus on life expectancy. Our visual dashboard will display important summaries on life expectancy including the global heat map, its correlation with GDP, and narrowed-down metric of the child mortality. The users will also be able to filter their findings according to different variables such as continent, country, and year by using the interactive control tools. 
 
 ## Description of the data
 
