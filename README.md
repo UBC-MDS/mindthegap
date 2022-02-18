@@ -36,10 +36,10 @@ If you run into troubles, please [check the issue list](https://github.com/UBC-M
 
 |    Core contributor| Github.com username|
 |-------------------  |-------------------|
-|       Harry Chan    |  @harryyikhchan   |
-|    Navya Dahiya     |  @nd265           |
-|  Nico Van den Hooff |  @nicovandenhooff |
-|      James Kim      |  @jamesktkim      |  
+|       Harry Chan    |  [@harryyikhchan](https://github.com/harryyikhchan)     |
+|    Navya Dahiya     |  [@nd265](https://github.com/nd265/)                    |
+|  Nico Van den Hooff |  [@nicovandenhooff](https://github.com/nicovandenhooff) |
+|      James Kim      |  [@jamesktkim ](https://github.com/jamesktkim)          |  
 
 Feedback and suggestions are always welcome! Please read [the contributing guidelines](https://github.com/UBC-MDS/mindthegap/blob/main/CONTRIBUTING.md) to get started.
 

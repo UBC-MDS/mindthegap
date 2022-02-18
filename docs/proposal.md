@@ -10,7 +10,8 @@ Life expectancy is one of the most important metrics that gauge the well-being o
 
 ## Description of the data
 
-TBC
+We would be using the infamous [Gapminder dataset](https://raw.githubusercontent.com/UofTCoders/workshops-dc-py/master/data/processed/world-data-gapminder.csv) to find insights about the health related indicators namely life expectancy and child mortality rates, along with the factors like income and population size that affect them. The dataset consists of 14 columns and 38982 rows containing various demographic features for each country from the year 1800 to 2018. The data from the earlier years is often missing, so majority of our visualization would be from the more recent years. The main focus of our dashboard would be on depicting life expectancy(in years) and child mortality(deaths of children under 5 per 1,000 live births) over the years across the world. Each country has an associated region and sub-region. The users would be able to filter on the basis of year, sub-regions(Northern America, Western Asia, etc) regions(Asia, America, etc) and view the life expectancies of top 10 countries, life expectancies across all regions in the world and the affect of income and population size(in the region) on life expectancy across the world. Furthermore, the impact of income on child mortality rate for each region in the world would also be showcased
+
 
 ## Research questions you are exploring
 
