@@ -6,7 +6,7 @@ An interactive dashboard for analyzing the Gapminder dataset
 
 ### Proposed sketch
 
-![](img/dashboard-sketch.jpg.jpg)
+![](img/dashboard-sketch.jpg)
 
 ### App description
 
