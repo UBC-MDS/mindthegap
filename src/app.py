@@ -2,6 +2,7 @@ from dash import Dash, html, dcc, Input, Output
 import pandas as pd
 import altair as alt
 from vega_datasets import data
+import dash_bootstrap_components as dbc
 
 
 
@@ -40,6 +41,14 @@ def plot_world_map(metric, yr):
                 color=alt.Color(metric + ":Q", title=metrics[metric]))
     return chart.to_html()
 
+boxPlot = html.Iframe(
+    id="boxPlot",
+    style={
+        "border-width": "0",
+        "width": "100%",
+        "height": "400px"
+    },
+)
 
 app.layout = html.Div([
     
@@ -56,11 +65,142 @@ app.layout = html.Div([
                 ],
             value=2012) ,
     html.Br(),
-    html.Iframe(id='map',
-                style={'border-width': '0', 'width': '100%', 'height': '600px'})
- 
-    ])
+    dbc.Row(
+        [
+            dbc.Col(
+                [
+                    dbc.Row(
+                        html.Iframe(
+                            id='map',
+                            style={'border-width': '0', 'width': '100%', 'height': '600px'}
+                        )
+                    ),
+                    dbc.Row(boxPlot)
+                ],
+                md=8,
+            ),
+        ],
+        align="center",
+    ),
+])
 
+@app.callback(
+    Output("boxPlot", "srcDoc"),
+    Input("metric", "value"),
+    # Input("region", "value"),
+    # Input("sub_region", "value"),
+    # Input("country", "value"),
+    Input("yr", "value"),
+)
+# def plot_box_plot(metric, region, sub_region, country, yr):
+def plot_box_plot(metric, yr):
+    """
+    Create box chart for statsitic of interested based on selected filters, for top 5 or bottom 5 countries
+    Parameters
+    --------
+    metric: string
+        Selection from statistic of interest filter
+    region: string
+        Selection from the region filter
+    sub_region: sting
+        Selection from Sub Region filter
+    country: string
+        Selection from Country filter
+    year: integer
+        Year for which the data is displayed, from Year filter
+    Returns
+    --------
+    chart
+        bar chart showing statistic of interest for top 5 or bottom 5 countries,
+        in specific region, subregion, income group and year
+    Example
+    --------
+    > plot_box_plot("child_mortality", "Asia", "Western Asia", "Yemen", 2015)
+    """
+    alt.data_transformers.disable_max_rows()
+
+    # filter by region, sub-region, country & year
+    data = filter_data(None, None, None, yr)
+    # data = filter_data(region, sub_region, country, yr)
+    
+    data = data[data['income_group'].notnull()]
+
+    chart = (
+        alt.Chart(
+            data,
+            title=f"{metrics[metric]} group by Income Group for year {yr}",
+        )
+        .mark_boxplot()
+        .encode(
+            x=alt.X("income_group", sort="-x", title="Income Group"),
+            y=alt.Y(metric, title=metrics[metric]),
+            color=alt.Color(
+                "income_group",
+                sort=alt.EncodingSortField("income_group", order="descending"),
+                title="Income Group",
+            ),
+            tooltip=("name:O", "child_mortality:Q"),
+        )
+        .configure_axis(labelFontSize=12, titleFontSize=14)
+        .configure_title(fontSize=15)
+        .configure_legend(labelFontSize=12)
+        .properties(width=400, height=300)
+    )
+    return chart.to_html()
+
+def filter_data(region, sub_region, country, yr):
+    """
+    Filter data based on region, sub region and income group selection
+    Parameters
+    --------
+    region: string
+        Selection from the Region filter
+    sub_region: sting
+        Selection from Sub Region filter
+    country: sting
+        Selection from Country filter
+    yr: string
+        Selection from  Year
+    Returns
+    --------
+    data
+        dataset that has been filtered on region, sub region and income group selection
+    Example
+    --------
+    > filter_data(d"Asia", "Western Asia", "Yemen", 2015)
+    """
+    if region is not None and sub_region is not None and country is not None:
+        data = gap[
+            (gap["region"] == region)
+            & (gap["sub_region"] == sub_region)
+            & (gap["country"] == country)
+        ]
+    elif region is not None and sub_region is None and country is None:
+        data = gap[(gap["region"] == region)]
+    elif region is None and sub_region is not None and country is None:
+        data = gap[(gap["sub_region"] == sub_region)]
+    elif region is None and sub_region is None and country is not None:
+        data = gap[(gap["country"] == country)]
+    elif region is not None and sub_region is not None and country is None:
+        data = gap[
+            (gap["region"] == region) & (gap["sub_region"] == sub_region)
+        ]
+    elif region is None and sub_region is not None and country is not None:
+        data = gap[
+            (gap["sub_region"] == sub_region)
+            & (gap["country"] == country)
+        ]
+    elif region is not None and sub_region is None and country is not None:
+        data = gap[
+            (gap["region"] == region) & (gap["country"] == country)
+        ]
+    else:
+        data = gap
+
+    if yr:
+        data = data.loc[gap['year']==yr]
+
+    return data
 
 if __name__ == '__main__':
     app.run_server(debug=True)
