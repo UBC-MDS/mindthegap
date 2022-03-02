@@ -1,4 +1,5 @@
 from dash import Dash, html, dcc, Input, Output
+import numpy as np
 import pandas as pd
 import altair as alt
 from vega_datasets import data
@@ -16,6 +17,9 @@ metrics={'life_expectancy':'Life Expectancy', 'child_mortality':'Child Mortality
 gap = pd.read_csv('data/gapminder.csv')
 country_ids=pd.read_csv('data/country_ids.csv')
 gap = gap.merge(country_ids, how="outer", on=["country"])
+
+# add log income for bubble chart
+gap["log_income"] = gap["income"].apply(np.log)
 
 @app.callback(
     Output("map", "srcDoc"),
@@ -50,6 +54,15 @@ boxPlot = html.Iframe(
     },
 )
 
+bubble_chart = html.Iframe(
+    id="bubble_chart",
+    style={
+        "border-width": "0",
+        "width": "100%",
+        "height": "400px"
+    },
+)
+
 app.layout = html.Div([
     
     dcc.RadioItems(id='metric', value='life_expectancy',
@@ -75,7 +88,8 @@ app.layout = html.Div([
                             style={'border-width': '0', 'width': '100%', 'height': '600px'}
                         )
                     ),
-                    dbc.Row(boxPlot)
+                    dbc.Row(boxPlot),
+                    dbc.Row(bubble_chart)
                 ],
                 md=8,
             ),
@@ -201,6 +215,44 @@ def filter_data(region, sub_region, country, yr):
         data = data.loc[gap['year']==yr]
 
     return data
+
+@app.callback(Output("bubble_chart", "srcDoc"), Input("yr", "value"))
+def plot_bubble_chart(yr):
+    """Create a bubble chart for income vs. life expectancy for a given year.
+
+    Parameters
+    ----------
+    yr : int
+        The year to filter for.
+
+    Returns
+    -------
+    chart
+        The bubble chart.
+    """
+    df = filter_year(yr)
+
+    chart = (
+        alt.Chart(df, title="Income vs. Life Expectancy")
+        .mark_circle()
+        .encode(
+            alt.X(
+                "log_income", title="Income (Log Scale)", scale=alt.Scale(zero=False)
+            ),
+            alt.Y(
+                "life_expectancy",
+                title="Life Expectancy (Years)",
+                scale=alt.Scale(zero=False),
+            ),
+            alt.Size(
+                "population", title="Population", scale=alt.Scale(range=(10, 1000))
+            ),
+            alt.Color("region", title="Continent"),
+        )
+        .configure_axis(titleFontSize=14)
+    )
+
+    return chart.to_html()
 
 if __name__ == '__main__':
     app.run_server(debug=True)
