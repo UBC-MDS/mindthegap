@@ -107,10 +107,11 @@ app.layout = html.Div([
         ),
     html.H3('Sub Region'),
     dcc.Dropdown(id='sub_region',
+        options=[{"label": sub_reg, "value": sub_reg} for sub_reg in gap["sub_region"].dropna().unique()],
         value=None) ,
-    html.H3('Country'),
-    dcc.Dropdown(id='country',
-        value=None),
+    # html.H3('Country'),
+    # dcc.Dropdown(id='country',
+    #     value=None),
     html.Br(),
     dbc.Row(
         [
@@ -270,24 +271,33 @@ def plot_bubble_chart(yr):
 @app.callback(
     Output('barchart', 'srcDoc'),
     Input("metric", "value"),
-    Input('yr', 'value'))
+    Input("region", "value"),
+    Input("sub_region", "value"),
+    Input("yr", "value"),
+)
 
-def plot_country(metric, yr):
+def plot_country(metric, region, sub_region, yr):
 
     """Create a bar chart for top 10 countries in terms of life expectancy.
 
     Parameters
     ----------
+    metric: string
+        Selection from statistic of interest filter
+    region: string
+        Selection from the region filter
+    sub_region: string
+        Selection from Sub Region filter
     yr : int
         The year to filter for.
 
     Returns
     -------
     chart
-        The bar chart.
+        The bar chart that shows top 10 countries for filters selected
     """
 
-    data = filter_data(None, None, None, yr)
+    data = filter_data(region, sub_region, None, yr)
 
     country = (
         alt.Chart(data, title=f"{metrics[metric]} - Top 10 Country for Year {yr}")
