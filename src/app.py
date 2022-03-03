@@ -132,7 +132,7 @@ app.layout = dbc.Container(
                 "font-size": "26px"
             },
             children=[
-                html.H1("MindTheGap"),
+                html.H1("The Gapminder Dashboard"),
             ],
         ),
         html.Hr(),
