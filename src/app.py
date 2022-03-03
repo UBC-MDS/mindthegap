@@ -14,8 +14,8 @@ server=app.server
 metrics={'life_expectancy':'Life Expectancy', 'child_mortality':'Child Mortality', 'pop_density':'Population Density'}
 
 #merge country_id.csv with gaominder.csv
-gap = pd.read_csv('data/gapminder.csv')
-country_ids=pd.read_csv('data/country_ids.csv')
+gap = pd.read_csv('../data/gapminder.csv')
+country_ids=pd.read_csv('../data/country_ids.csv')
 gap = gap.merge(country_ids, how="outer", on=["country"])
 
 # add log income for bubble chart
@@ -63,6 +63,15 @@ bubble_chart = html.Iframe(
     },
 )
 
+barchart = html.Iframe(
+    id='barchart',
+    style={
+        'border-width': '0', 
+        'width': '100%',
+        'height': '400px',
+    },
+)
+
 app.layout = html.Div([
     
     dcc.RadioItems(id='metric', value='life_expectancy',
@@ -89,7 +98,8 @@ app.layout = html.Div([
                         )
                     ),
                     dbc.Row(boxPlot),
-                    dbc.Row(bubble_chart)
+                    dbc.Row(bubble_chart),
+                    dbc.Row(barchart)
                 ],
                 md=8,
             ),
@@ -253,6 +263,44 @@ def plot_bubble_chart(yr):
     )
 
     return chart.to_html()
+
+# Set up callbacks/backend
+@app.callback(
+    Output('barchart', 'srcDoc'),
+    Input('yr', 'value'))
+
+def plot_country(yr):
+
+    """Create a bar chart for top 10 countries in terms of life expectancy.
+
+    Parameters
+    ----------
+    yr : int
+        The year to filter for.
+
+    Returns
+    -------
+    chart
+        The bar chart.
+    """
+
+    df = filter_year(yr)
+
+    country = (
+        alt.Chart(df, title='Top 10 Countries').mark_bar().encode(
+            y=alt.Y('country', sort='-x', title='Country'),
+            x=alt.X('life_expectancy', title='Life Expectancy'),
+            color=alt.Color('life_expectancy')
+        ).transform_window(
+            rank='rank(life_expectancy)',
+            sort=[alt.SortField('life_expectancy', order='descending')]
+        ).transform_filter(
+            (alt.datum.rank < 10))
+    )
+
+    return country.to_html()
+
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)
