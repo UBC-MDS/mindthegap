@@ -73,6 +73,29 @@ barchart = html.Iframe(
     },
 )
 
+worldmap = html.Iframe(
+    id="worldmap",
+    style={
+         "border-width": "0",
+        "width": "100%",
+        "height": "400px"
+    }
+)
+
+@app.callback(
+    Output("sub_region", "options"),
+    Input("region", "value"),
+)
+def get_sub_region(region):
+    if region is None:
+        options = [{"label": sub_region, "value": sub_region} for sub_region in gap["sub_region"].dropna().unique()]
+    else:
+        sub_regions = list(gap[gap['region']==region]['sub_region'].unique())
+        options=[]
+        for sr in sub_regions:
+            options.append({"label":sr, "value":sr})
+    return options
+
 app.layout = html.Div([
     
     dcc.RadioItems(id='metric', value='life_expectancy',
@@ -107,7 +130,7 @@ app.layout = html.Div([
         ),
     html.H3('Sub Region'),
     dcc.Dropdown(id='sub_region',
-        options=[{"label": sub_reg, "value": sub_reg} for sub_reg in gap["sub_region"].dropna().unique()],
+        # options=None,
         value=None) ,
     # html.H3('Country'),
     # dcc.Dropdown(id='country',
@@ -133,6 +156,8 @@ app.layout = html.Div([
         align="center",
     ),
 ])
+
+
 
 @app.callback(
     Output("boxPlot", "srcDoc"),
