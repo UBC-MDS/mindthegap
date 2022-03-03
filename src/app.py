@@ -1,4 +1,5 @@
 from dash import Dash, html, dcc, Input, Output
+import numpy as np
 import pandas as pd
 import altair as alt
 from vega_datasets import data
@@ -13,9 +14,12 @@ server=app.server
 metrics={'life_expectancy':'Life Expectancy', 'child_mortality':'Child Mortality', 'pop_density':'Population Density'}
 
 #merge country_id.csv with gaominder.csv
-gap = pd.read_csv('data/gapminder.csv')
-country_ids=pd.read_csv('data/country_ids.csv')
+gap = pd.read_csv('../data/gapminder.csv')
+country_ids=pd.read_csv('../data/country_ids.csv')
 gap = gap.merge(country_ids, how="outer", on=["country"])
+
+# add log income for bubble chart
+gap["log_income"] = gap["income"].apply(np.log)
 
 @app.callback(
     Output("map", "srcDoc"),
@@ -50,21 +54,51 @@ boxPlot = html.Iframe(
     },
 )
 
+bubble_chart = html.Iframe(
+    id="bubble_chart",
+    style={
+        "border-width": "0",
+        "width": "100%",
+        "height": "400px"
+    },
+)
+
+barchart = html.Iframe(
+    id='barchart',
+    style={
+        'border-width': '0', 
+        'width': '100%',
+        'height': '400px',
+    },
+)
+
 app.layout = html.Div([
     
     dcc.RadioItems(id='metric', value='life_expectancy',
         options=[{'label': v, 'value': k} for k, v in metrics.items()]),
-    html.Br(),
-    'Year',
-    dcc.Dropdown(id='yr', 
-        options=[
-                {'label': 1990, 'value': 1990},
-                {'label': 2000, 'value': 2000},
-                {'label': 2012, 'value': 2012},
-                {'label': 2015, 'value': 2015}
-                ],
-            value=2012) ,
-    html.Br(),
+
+    # adding the slider instead to filter year
+    html.H3('Year'),
+    html.P('The user can slide over the years to filter the year'),
+    dcc.Slider(
+        min=1970,
+        max=2010,
+        step=5,
+        value=2010,
+        id='yr',
+        marks={i: str(i) for i in range(1970, 2015, 5)},
+        ),
+    # html.Br(),
+    # 'Year',
+    # dcc.Dropdown(id='yr', 
+    #     options=[
+    #             {'label': 1990, 'value': 1990},
+    #             {'label': 2000, 'value': 2000},
+    #             {'label': 2012, 'value': 2012},
+    #             {'label': 2015, 'value': 2015}
+    #             ],
+    #         value=2012) ,
+    # html.Br(),
     dbc.Row(
         [
             dbc.Col(
@@ -75,7 +109,9 @@ app.layout = html.Div([
                             style={'border-width': '0', 'width': '100%', 'height': '600px'}
                         )
                     ),
-                    dbc.Row(boxPlot)
+                    dbc.Row(boxPlot),
+                    dbc.Row(bubble_chart),
+                    dbc.Row(barchart)
                 ],
                 md=8,
             ),
@@ -201,6 +237,84 @@ def filter_data(region, sub_region, country, yr):
         data = data.loc[gap['year']==yr]
 
     return data
+
+@app.callback(Output("bubble_chart", "srcDoc"), Input("yr", "value"))
+def plot_bubble_chart(yr):
+    """Create a bubble chart for income vs. life expectancy for a given year.
+
+    Parameters
+    ----------
+    yr : int
+        The year to filter for.
+
+    Returns
+    -------
+    chart
+        The bubble chart.
+    """
+    df = filter_year(yr)
+
+    chart = (
+        alt.Chart(df, title="Income vs. Life Expectancy")
+        .mark_circle()
+        .encode(
+            alt.X(
+                "log_income", title="Income (Log Scale)", scale=alt.Scale(zero=False)
+            ),
+            alt.Y(
+                "life_expectancy",
+                title="Life Expectancy (Years)",
+                scale=alt.Scale(zero=False),
+            ),
+            alt.Size(
+                "population", title="Population", scale=alt.Scale(range=(10, 1000))
+            ),
+            alt.Color("region", title="Continent"),
+        )
+        .configure_axis(titleFontSize=14)
+    )
+
+    return chart.to_html()
+
+# Set up callbacks/backend
+@app.callback(
+    Output('barchart', 'srcDoc'),
+    Input("metric", "value"),
+    Input('yr', 'value'))
+
+def plot_country(metric, yr):
+
+    """Create a bar chart for top 10 countries in terms of life expectancy.
+
+    Parameters
+    ----------
+    yr : int
+        The year to filter for.
+
+    Returns
+    -------
+    chart
+        The bar chart.
+    """
+
+    data = filter_data(None, None, None, yr)
+
+    country = (
+        alt.Chart(data, title=f"{metrics[metric]} - Top 10 Country for Year {yr}")
+        .mark_bar().encode(
+            y=alt.Y('country', sort='-x', title='Country'),
+            x=alt.X(metric, title=metrics[metric]),
+            color=alt.Color(metric + ":Q", title=metrics[metric])
+        ).transform_window(
+            rank='rank(life_expectancy)',
+            sort=[alt.SortField(metric, order='descending')]
+        ).transform_filter(
+            (alt.datum.rank < 10))
+    )
+
+    return country.to_html()
+
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)
