@@ -151,26 +151,10 @@ app.layout = dbc.Container(
 )
 
 ############################## HELPER FUNCTIONS ###################################
-def filter_year(yr):
-    """Filter the gapminder dataset based on a year filter
-
-    Parameters
-    ----------
-    yr : int
-        The year to filter for
-
-    Returns
-    -------
-    pandas DataFrame
-        The filtered dataset
-    """
-    return gap.loc[gap["year"] == yr]
-
 
 def filter_data(region, sub_region, country, yr):
     """
     Filter data based on region, sub region and country selection
-
     Parameters
     --------
     region: string
@@ -181,12 +165,10 @@ def filter_data(region, sub_region, country, yr):
         Selection from Country filter
     yr: string
         Selection from  Year
-
     Returns
     --------
     data
         dataset that has been filtered on region, sub region and country selection
-
     Example
     --------
     > filter_data("Asia", "Western Asia", "Yemen", 2015)
@@ -213,12 +195,10 @@ def filter_data(region, sub_region, country, yr):
 )
 def get_sub_region(region):
     """Get a sub region value(s) based on a region value in gapminder
-
     Parameters
     ----------
     region : string
         The region to get subregions for
-
     Returns
     -------
     options
@@ -241,24 +221,22 @@ def get_sub_region(region):
 @app.callback(
     Output("worldmap", "srcDoc"),
     Input("metric", "value"),
+    Input("region", "value"),
     Input("yr", "value"),
 )
-def plot_world_map(metric, yr):
+def plot_world_map(metric, region, yr):
     """
     Create world heatmap for statsitic of interest based on selected year filter.
-
     Parameters
     --------
     metric: string
         Selection from statistic of interest filter
     yr: integer
         Year for which the data is displayed, from Year filter
-
     Returns
     --------
     chart
         World heatmap for statistic of interest based on year filter
-
     Example
     --------
     > plot_world_map("child_mortality", "Asia", 2015)
@@ -266,19 +244,52 @@ def plot_world_map(metric, yr):
     world = data.world_110m()
     world_map = alt.topo_feature(data.world_110m.url, "countries")
     alt.data_transformers.disable_max_rows()
-    df = filter_year(yr)
+    df = filter_data(region, None, None, yr)
 
-    chart = (
-        alt.Chart(world_map, title=f"{metrics[metric]} by country for year {yr}")
-        .mark_geoshape(stroke="black")
-        .transform_lookup(
-            lookup="id", from_=alt.LookupData(df, key="id", fields=["country", metric])
+    if region is None:
+
+        chart = (
+            alt.Chart(world_map, title=f"{metrics[metric]} by country for year {yr}")
+            .mark_geoshape(stroke="black")
+            .transform_lookup(
+                lookup="id", from_=alt.LookupData(df, key="id", fields=["country", metric])
+            )
+            .encode(
+                tooltip=["country:O", metric + ":Q"],
+                color=alt.Color(metric + ":Q", title=metrics[metric]),
+            )
+           .properties(width=600, height=350)
         )
-        .encode(
-            tooltip=["country:O", metric + ":Q"],
-            color=alt.Color(metric + ":Q", title=metrics[metric]),
-        )
-        .properties(width=750, height=350)
+
+    else:
+        scl = None
+        trans = None
+        if region == "Europe":
+            scl = 800
+            trans = [150, 1010]
+        elif region == "Asia":
+            scl = 500
+            trans = [-200, 500]
+        elif region == "Africa":
+            scl = 500
+            trans = [400, 300]
+        elif region == "Americas":
+            scl = 300
+            trans = [1000, 350]
+        elif region == "Oceania":
+            scl = 500
+            trans = [-400, 0]
+        chart = (
+            alt.Chart(world_map, title=f"{metrics[metric]} by country for year {yr}")
+            .mark_geoshape(stroke="black")
+            .transform_lookup(
+                lookup="id", from_=alt.LookupData(df, key="id", fields=["country", metric])
+            )
+            .encode(
+                tooltip=["country:O", metric + ":Q"],
+                color=alt.Color(metric + ":Q", title=metrics[metric]))
+            .project(type='naturalEarth1', scale=scl, translate=trans)
+        .properties(width=600, height=350)
     )
     return chart.to_html()
 
@@ -293,7 +304,6 @@ def plot_world_map(metric, yr):
 def plot_box_plot(metric, region, sub_region, yr):
     """
     Create box chart for statsitic of interested based on selected filters for income groups
-
     Parameters
     --------
     metric: string
@@ -304,13 +314,11 @@ def plot_box_plot(metric, region, sub_region, yr):
         Selection from sub region filter
     yr: integer
         Year for which the data is displayed, from Year filter
-
     Returns
     --------
     chart
         Bar chart showing statistic of interest for income groups,
         in specific region, subregion and year
-
     Example
     --------
     > plot_box_plot("child_mortality", "Asia", "Western Asia", 2015)
@@ -355,7 +363,6 @@ def plot_box_plot(metric, region, sub_region, yr):
 def plot_bubble_chart(metric, region, sub_region, yr):
     """
     Create bubble chart for statsitic of interested based on selected filters vs GDP
-
     Parameters
     --------
     metric: string
@@ -366,13 +373,11 @@ def plot_bubble_chart(metric, region, sub_region, yr):
         Selection from sub region filter
     yr: integer
         Year for which the data is displayed, from Year filter
-
     Returns
     --------
     chart
         Bubble chart showing statistic of interest for income groups,
         in specific region, subregion and year vs GDP.
-
     Example
     --------
     > plot_bubble_chart("child_mortality", "Asia", "Western Asia", 2015)
@@ -414,7 +419,6 @@ def plot_bubble_chart(metric, region, sub_region, yr):
 def plot_bar_chart(metric, region, sub_region, yr):
     """
     Create a bar chart for top 10 countries in terms of life expectancy.
-
     Parameters
     --------
     metric: string
@@ -425,12 +429,10 @@ def plot_bar_chart(metric, region, sub_region, yr):
         Selection from sub region filter
     yr: integer
         Year for which the data is displayed, from Year filter
-
     Returns
     -------
     chart
         The bar chart that shows top 10 countries for filters selected
-
     Example
     --------
     > plot_bar_chart("child_mortality", "Asia", "Western Asia", 2015)
