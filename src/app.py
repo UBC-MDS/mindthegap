@@ -30,72 +30,69 @@ gap["log_income"] = gap["income"].apply(np.log)
 
 ########################################
 LAYOUT_SYLE = {"background-color": "#f8f9fa"}
+
 layout = dbc.Card(
-    [
-        # control panel title
-        html.H2("Control Panel", className="text-center"),
-        # filter for Statistic of Interest
-        html.Hr(),
-        dbc.FormGroup(
-            [
-                html.H5("1. Metric", className="text-left"),
-                dbc.RadioItems(
-                    id="metric",
-                    value="life_expectancy",
-                    labelStyle={"display": "block"},
-                    options=[{"label": v, "value": k} for k, v in metrics.items()],
-                ),
-            ]
-        ),
-        html.Hr(),
-        # filter for Region
-        dbc.FormGroup(
-            [
-                html.H5("2. Region", className="text-left"),
-                dcc.Dropdown(
-                    id="region",
-                    options=[
-                        {"label": reg, "value": reg}
-                        for reg in gap["region"].dropna().unique()
-                    ],
-                    value=None,
-                ),
-            ]
-        ),
-        html.Hr(),
-        # filter for Sub Region
-        dbc.FormGroup(
-            [
-                html.H5("3. Sub Region", className="text-left"),
-                dcc.Dropdown(id="sub_region", value=None),
-            ]
-        ),
-        html.Hr(),
-        # filter for year
-        dbc.FormGroup(
-            [
-                html.H5("4. Year", className="text-left"),
-                dcc.Slider(
-                    min=1970,
-                    max=2010,
-                    step=5,
-                    value=2010,
-                    id="yr",
-                    marks={
-                        str(i): {"label": str(i), "style": {"color": "black"}}
-                        for i in range(1970, 2015, 5)
-                    },
-                    # marks={'label' : {str(i), 'style':{'color':'black'}} for i in range(1970, 2015, 6)},
-                ),
-            ]
-        ),
-        html.Hr(),
-        html.Small(
-            "Note: empty plots mean that we don't have data based on your selection"
-        ),
-    ],
-    # color="secondary",
-    # inverse=True,
+    dbc.Col(
+        [
+            # control panel title
+            html.H2("Control Panel", className="text-center"),
+            html.Br(),
+            dbc.Row(
+                [
+                    html.H5("1. Metric", className="text-left"),
+                    dbc.RadioItems(
+                        id="metric",
+                        value="life_expectancy",
+                        labelStyle={"display": "block"},
+                        options=[{"label": v, "value": k} for k, v in metrics.items()],
+                    ),
+                ]
+            ),
+            html.Br(),
+            dbc.Row(
+                [
+                    html.H5("2. Region", className="text-left"),
+                    dcc.Dropdown(
+                        id="region",
+                        options=[
+                            {"label": reg, "value": reg}
+                            for reg in gap["region"].dropna().unique()
+                        ],
+                        value=None,
+                    ),
+                ]
+            ),
+            html.Br(),
+            dbc.Row(
+                [
+                    html.H5("3. Sub Region", className="text-left"),
+                    dcc.Dropdown(id="sub_region", value=None),
+                ]
+            ),
+            html.Br(),
+            dbc.Row(
+                [
+                    html.H5("4. Year", className="text-left"),
+                    dcc.Slider(
+                        min=1970,
+                        max=2010,
+                        step=5,
+                        value=2010,
+                        id="yr",
+                        marks={
+                            str(i): {"label": str(i), "style": {"color": "black"}}
+                            for i in range(1970, 2015, 5)
+                        },
+                        # marks={'label' : {str(i), 'style':{'color':'black'}} for i in range(1970, 2015, 6)},
+                    ),
+                ]
+            ),
+            html.Br(),
+            html.Small(
+                "Note: If a plot is empty, this means that there is no data based on your selections."
+            ),
+        ],
+    ),
     style=LAYOUT_SYLE,
     body=True,
 )
