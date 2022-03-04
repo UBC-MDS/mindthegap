@@ -158,35 +158,70 @@ app.layout = dbc.Container(
 @app.callback(
     Output("worldmap", "srcDoc"),
     Input("metric", "value"),
+    Input("region", "value"),
     Input("yr", "value"),
 )
-def plot(metric, yr):
-    return plot_world_map(metric, yr)
+def plot(metric, region, yr):
+    return plot_world_map(metric, region, yr)
 
 
 def filter_year(yr):
     return gap.loc[gap["year"] == yr]
 
 
-def plot_world_map(metric, yr):
+def plot_world_map(metric, region, yr):
 
     world = data.world_110m()
     world_map = alt.topo_feature(data.world_110m.url, "countries")
     alt.data_transformers.disable_max_rows()
     df = filter_year(yr)
 
-    chart = (
-        alt.Chart(world_map, title=f"{metrics[metric]} by country for year {yr}")
-        .mark_geoshape(stroke="black")
-        .transform_lookup(
-            lookup="id", from_=alt.LookupData(df, key="id", fields=["country", metric])
+    if region is None:
+
+        chart = (
+            alt.Chart(world_map, title=f"{metrics[metric]} by country for year {yr}")
+            .mark_geoshape(stroke="black")
+            .transform_lookup(
+                lookup="id", from_=alt.LookupData(df, key="id", fields=["country", metric])
+            )
+            .encode(
+                tooltip=["country:O", metric + ":Q"],
+                color=alt.Color(metric + ":Q", title=metrics[metric]),
+            )
+            .properties(width=1000)
         )
-        .encode(
-            tooltip=["country:O", metric + ":Q"],
-            color=alt.Color(metric + ":Q", title=metrics[metric]),
+
+    else:
+        # print(region)
+        scl = None
+        trans = None
+        if region == "Europe":
+            scl = 800
+            trans = [150, 1010]
+        elif region == "Asia":
+            scl = 500
+            trans = [-200, 500]
+        elif region == "Africa":
+            scl = 500
+            trans = [400, 300]
+        elif region == "Americas":
+            scl = 300
+            trans = [1000, 350]
+        elif region == "Oceania":
+            scl = 500
+            trans = [-400, 0]
+        chart = (
+            alt.Chart(world_map, title=f"{metrics[metric]} by country for year {yr}")
+            .mark_geoshape(stroke="black")
+            .transform_lookup(
+                lookup="id", from_=alt.LookupData(df, key="id", fields=["country", metric])
+            )
+            .encode(
+                tooltip=["country:O", metric + ":Q"],
+                color=alt.Color(metric + ":Q", title=metrics[metric]))
+            .project(type='naturalEarth1', scale=scl, translate=trans).properties(width=1000)
         )
-        .properties(width=1000)
-    )
+
     return chart.to_html()
 
 
