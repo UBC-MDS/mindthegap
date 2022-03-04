@@ -5,27 +5,31 @@ import altair as alt
 from vega_datasets import data
 import dash_bootstrap_components as dbc
 import os
+
 # Current Path
 current_dir = os.path.abspath(os.path.dirname(__file__))
 
 app = Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
-server=app.server
+server = app.server
 
-#dictionary to generate dynamic metrics in altair
-metrics={'life_expectancy':'Life Expectancy', 'child_mortality':'Child Mortality', 'pop_density':'Population Density'}
+# dictionary to generate dynamic metrics in altair
+metrics = {
+    "life_expectancy": "Life Expectancy",
+    "child_mortality": "Child Mortality",
+    "pop_density": "Population Density",
+}
 
-#merge country_id.csv with gaominder.csv'
-gap = pd.read_csv(os.path.join(current_dir, '../data/gapminder.csv'))
-country_ids=pd.read_csv(os.path.join(current_dir, '../data/country_ids.csv'))
+# merge country_id.csv with gaominder.csv'
+gap = pd.read_csv(os.path.join(current_dir, "../data/gapminder.csv"))
+country_ids = pd.read_csv(os.path.join(current_dir, "../data/country_ids.csv"))
 gap = gap.merge(country_ids, how="outer", on=["country"])
 
 # add log income for bubble chart
 gap["log_income"] = gap["income"].apply(np.log)
 
 
-
 ########################################
-
+LAYOUT_SYLE = {"background-color": "#f8f9fa"}
 layout = dbc.Card(
     [
         # control panel title
@@ -35,12 +39,12 @@ layout = dbc.Card(
         dbc.FormGroup(
             [
                 html.H5("1. Metric", className="text-left"),
-                dcc.RadioItems(id='metric', 
-                   value='life_expectancy', 
-                   labelStyle={"display": "block"},
-                   options=[{'label': v, 'value': k} for k, v in metrics.items()],
-                
-            )
+                dbc.RadioItems(
+                    id="metric",
+                    value="life_expectancy",
+                    labelStyle={"display": "block"},
+                    options=[{"label": v, "value": k} for k, v in metrics.items()],
+                ),
             ]
         ),
         html.Hr(),
@@ -48,114 +52,104 @@ layout = dbc.Card(
         dbc.FormGroup(
             [
                 html.H5("2. Region", className="text-left"),
-                dcc.Dropdown(id='region', 
-                options=[{"label": reg, "value": reg} for reg in gap["region"].dropna().unique()],
-                value=None
-        )
+                dcc.Dropdown(
+                    id="region",
+                    options=[
+                        {"label": reg, "value": reg}
+                        for reg in gap["region"].dropna().unique()
+                    ],
+                    value=None,
+                ),
             ]
         ),
         html.Hr(),
         # filter for Sub Region
         dbc.FormGroup(
-            [html.H5("3. Sub Region", className="text-left"), 
-           dcc.Dropdown(id='sub_region',
-        
-        value=None) ,
-        ]
+            [
+                html.H5("3. Sub Region", className="text-left"),
+                dcc.Dropdown(id="sub_region", value=None),
+            ]
         ),
-       
         html.Hr(),
         # filter for year
-        dbc.FormGroup([html.H5("6. Year", className="text-left"),
-        dcc.Slider(
-        min=1970,
-        max=2010,
-        step=5,
-        value=2010,
-        id='yr',
-        marks={str(i) : {'label' : str(i), 'style':{'color':'black'}} for i in range(1970, 2015, 5)},
-
-        # marks={'label' : {str(i), 'style':{'color':'black'}} for i in range(1970, 2015, 6)},
+        dbc.FormGroup(
+            [
+                html.H5("4. Year", className="text-left"),
+                dcc.Slider(
+                    min=1970,
+                    max=2010,
+                    step=5,
+                    value=2010,
+                    id="yr",
+                    marks={
+                        str(i): {"label": str(i), "style": {"color": "black"}}
+                        for i in range(1970, 2015, 5)
+                    },
+                    # marks={'label' : {str(i), 'style':{'color':'black'}} for i in range(1970, 2015, 6)},
+                ),
+            ]
         ),
-        ]),
         html.Hr(),
-        html.Small("Note: empty plots mean that we don't have data based on your selection"),
-        
+        html.Small(
+            "Note: empty plots mean that we don't have data based on your selection"
+        ),
     ],
-    color="secondary",
+    # color="secondary",
     # inverse=True,
+    style=LAYOUT_SYLE,
     body=True,
 )
 
 boxPlot = html.Iframe(
     id="boxPlot",
-    style={
-        "border-width": "0",
-        "width": "100%",
-        "height": "400px"
-    },
+    style={"border-width": "0", "width": "100%", "min-height": "400px"},
 )
 
 bubble_chart = html.Iframe(
     id="bubble_chart",
-    style={
-        "border-width": "0",
-        "width": "100%",
-        "height": "400px"
-    },
+    style={"border-width": "0", "width": "100%", "height": "400px"},
 )
 
 barchart = html.Iframe(
-    id='barchart',
+    id="barchart",
     style={
-        'border-width': '0', 
-        'width': '100%',
-        'height': '400px',
+        "border-width": "0",
+        "width": "100%",
+        "height": "400px",
     },
 )
 
 worldmap = html.Iframe(
-    id="worldmap",
-    style={
-         "border-width": "0",
-        "width": "100%",
-        "height": "400px"
-    }
+    id="worldmap", style={"border-width": "0", "width": "100%", "min-height": "400px"}
 )
 
 app.layout = dbc.Container(
     [
         html.Div(
-            style={
-                "textAlign": "center",
-                "color": "Gray",
-                "font-size": "26px"
-            },
+            style={"textAlign": "center", "color": "Gray", "font-size": "26px"},
             children=[
-                html.H1("The Gapminder Dashboard"),
+                html.H1("Mindthegap Dashboard"),
             ],
         ),
         html.Hr(),
         dbc.Row(
             [
-                dbc.Col(layout, md=4),
+                dbc.Col(layout, md=3),
                 dbc.Col(
                     [
                         dbc.Row(worldmap, align="center"),
-                        dbc.Row([dbc.Col([boxPlot], md=6),  dbc.Col([barchart], md=6)]),
-                        dbc.Row(bubble_chart, align = "center"),
-        
+                        dbc.Row(
+                            [dbc.Col([bubble_chart], md=6), dbc.Col([barchart], md=6)]
+                        ),
+                        dbc.Row(dbc.Col([boxPlot], md=6)),
                     ],
-                    md=8,
+                    md=9,
                 ),
             ],
-            align="center",
         ),
     ],
     fluid=True,
 )
-
-
 
 
 ################
@@ -169,20 +163,30 @@ app.layout = dbc.Container(
 def plot(metric, yr):
     return plot_world_map(metric, yr)
 
+
 def filter_year(yr):
-    return gap.loc[gap['year']==yr]
+    return gap.loc[gap["year"] == yr]
+
 
 def plot_world_map(metric, yr):
 
     world = data.world_110m()
-    world_map = alt.topo_feature(data.world_110m.url, 'countries')
+    world_map = alt.topo_feature(data.world_110m.url, "countries")
     alt.data_transformers.disable_max_rows()
     df = filter_year(yr)
 
-    chart = alt.Chart(world_map, title=f"{metrics[metric]} by country for year {yr}").mark_geoshape(stroke="black").transform_lookup(lookup="id", from_=alt.LookupData(df, key="id", fields=["country", metric])
-            ).encode(
-                tooltip=["country:O", metric + ":Q"],
-                color=alt.Color(metric + ":Q", title=metrics[metric]))
+    chart = (
+        alt.Chart(world_map, title=f"{metrics[metric]} by country for year {yr}")
+        .mark_geoshape(stroke="black")
+        .transform_lookup(
+            lookup="id", from_=alt.LookupData(df, key="id", fields=["country", metric])
+        )
+        .encode(
+            tooltip=["country:O", metric + ":Q"],
+            color=alt.Color(metric + ":Q", title=metrics[metric]),
+        )
+        .properties(width=1000)
+    )
     return chart.to_html()
 
 
@@ -192,14 +196,16 @@ def plot_world_map(metric, yr):
 )
 def get_sub_region(region):
     if region is None:
-        options = [{"label": sub_region, "value": sub_region} for sub_region in gap["sub_region"].dropna().unique()]
+        options = [
+            {"label": sub_region, "value": sub_region}
+            for sub_region in gap["sub_region"].dropna().unique()
+        ]
     else:
-        sub_regions = list(gap[gap['region']==region]['sub_region'].unique())
-        options=[]
+        sub_regions = list(gap[gap["region"] == region]["sub_region"].unique())
+        options = []
         for sr in sub_regions:
-            options.append({"label":sr, "value":sr})
+            options.append({"label": sr, "value": sr})
     return options
-
 
 
 @app.callback(
@@ -235,8 +241,8 @@ def plot_box_plot(metric, region, sub_region, yr):
 
     # filter by region, sub-region & year
     data = filter_data(region, sub_region, None, yr)
-    
-    data = data[data['income_group'].notnull()]
+
+    data = data[data["income_group"].notnull()]
 
     chart = (
         alt.Chart(
@@ -255,11 +261,11 @@ def plot_box_plot(metric, region, sub_region, yr):
             tooltip=("name:O", "child_mortality:Q"),
         )
         .configure_axis(labelFontSize=12, titleFontSize=14)
-        .configure_title(fontSize=15)
         .configure_legend(labelFontSize=12)
-        .properties(width=400, height=300)
+        .properties(width=200)
     )
     return chart.to_html()
+
 
 def filter_data(region, sub_region, country, yr):
     """
@@ -297,9 +303,8 @@ def filter_data(region, sub_region, country, yr):
 
     return data
 
-@app.callback(
-    Output("bubble_chart", "srcDoc"), 
-    Input("yr", "value"))
+
+@app.callback(Output("bubble_chart", "srcDoc"), Input("yr", "value"))
 def plot_bubble_chart(yr):
     """Create a bubble chart for income vs. life expectancy for a given year.
 
@@ -337,9 +342,10 @@ def plot_bubble_chart(yr):
 
     return chart.to_html()
 
+
 # Set up callbacks/backend
 @app.callback(
-    Output('barchart', 'srcDoc'),
+    Output("barchart", "srcDoc"),
     Input("metric", "value"),
     Input("region", "value"),
     Input("sub_region", "value"),
@@ -370,21 +376,21 @@ def plot_country(metric, region, sub_region, yr):
 
     country = (
         alt.Chart(data, title=f"{metrics[metric]} - Top 10 Country for Year {yr}")
-        .mark_bar().encode(
-            y=alt.Y('country', sort='-x', title='Country'),
+        .mark_bar()
+        .encode(
+            y=alt.Y("country", sort="-x", title="Country"),
             x=alt.X(metric, title=metrics[metric]),
-            color=alt.Color(metric + ":Q", title=metrics[metric])
-        ).transform_window(
-            rank='rank(life_expectancy)',
-            sort=[alt.SortField(metric, order='descending')]
-        ).transform_filter(
-            (alt.datum.rank < 10))
+            color=alt.Color(metric + ":Q", title=metrics[metric]),
+        )
+        .transform_window(
+            rank="rank(life_expectancy)",
+            sort=[alt.SortField(metric, order="descending")],
+        )
+        .transform_filter((alt.datum.rank < 10))
     )
 
     return country.to_html()
 
 
-
-if __name__ == '__main__':
-    app.run_server(debug=True)
-    
+if __name__ == "__main__":
+    app.run_server(debug=os.environ.get("IS_DEBUG", False))
