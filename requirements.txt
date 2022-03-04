@@ -2,6 +2,6 @@ pandas
 gunicorn
 altair==4.1.0
 dash==2.2.0
-dash-bootstrap-components==0.13.1
+dash-bootstrap-components==1.0.3
 plotly==5.6.0
 vega_datasets
