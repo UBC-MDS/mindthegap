@@ -46,15 +46,10 @@ Our dashboard contains four key visualizations arranged in a 2x2 grid:
 ### Core contributors
 
 | Core contributor| Github.com username|
-
 |------------------- |-------------------|
-
 | Harry Chan | [@harryyikhchan](https://github.com/harryyikhchan) |
-
 | Navya Dahiya | [@nd265](https://github.com/nd265/) |
-
 | Nico Van den Hooff | [@nicovandenhooff](https://github.com/nicovandenhooff) |
-
 | James Kim | [@jamesktkim](https://github.com/jamesktkim) |
 
 ### How to contribute
