@@ -297,8 +297,14 @@ def filter_data(region, sub_region, country, yr):
     return data
 
 
-@app.callback(Output("bubble_chart", "srcDoc"), Input("yr", "value"))
-def plot_bubble_chart(yr):
+@app.callback(
+    Output("bubble_chart", "srcDoc"),
+    Input("metric", "value"),
+    Input("region", "value"),
+    Input("sub_region", "value"),
+    Input("yr", "value"),
+)
+def plot_bubble_chart(metric, region, sub_region, yr):
     """Create a bubble chart for income vs. life expectancy for a given year.
 
     Parameters
@@ -311,18 +317,22 @@ def plot_bubble_chart(yr):
     chart
         The bubble chart.
     """
-    df = filter_year(yr)
+    # df = filter_year(yr)
+
+    df = filter_data(region, sub_region, None, yr)
 
     chart = (
-        alt.Chart(df, title="Income vs. Life Expectancy")
+        alt.Chart(df, title=f"{metrics[metric]} vs. GDP per Capita ($USD)")
         .mark_circle()
         .encode(
             alt.X(
-                "log_income", title="Income (Log Scale)", scale=alt.Scale(zero=False)
+                "log_income",
+                title="GDP per Capita ($USD Log Scale)",
+                scale=alt.Scale(zero=False),
             ),
             alt.Y(
-                "life_expectancy",
-                title="Life Expectancy (Years)",
+                metric,
+                title=metrics[metric],
                 scale=alt.Scale(zero=False),
             ),
             alt.Size(
