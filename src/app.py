@@ -151,19 +151,6 @@ app.layout = dbc.Container(
 )
 
 ############################## HELPER FUNCTIONS ###################################
-def filter_year(yr):
-    """Filter the gapminder dataset based on a year filter
-    Parameters
-    ----------
-    yr : int
-        The year to filter for
-    Returns
-    -------
-    pandas DataFrame
-        The filtered dataset
-    """
-    return gap.loc[gap["year"] == yr]
-
 
 def filter_data(region, sub_region, country, yr):
     """
@@ -257,7 +244,7 @@ def plot_world_map(metric, region, yr):
     world = data.world_110m()
     world_map = alt.topo_feature(data.world_110m.url, "countries")
     alt.data_transformers.disable_max_rows()
-    df = filter_year(yr)
+    df = filter_data(region, None, None, yr)
 
     if region is None:
 
