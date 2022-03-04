@@ -6,11 +6,16 @@ from vega_datasets import data
 import dash_bootstrap_components as dbc
 import os
 
-# Current Path
-current_dir = os.path.abspath(os.path.dirname(__file__))
 
 app = Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
 server = app.server
+
+# read in gapminder and continent data
+current_dir = os.path.abspath(os.path.dirname(__file__))
+country_ids = pd.read_csv(os.path.join(current_dir, "../data/country_ids.csv"))
+gap = pd.read_csv(os.path.join(current_dir, "../data/gapminder.csv"))
+gap = gap.merge(country_ids, how="outer", on=["country"])
+gap["log_income"] = gap["income"].apply(np.log)
 
 # dictionary to generate dynamic metrics in altair
 metrics = {
@@ -19,94 +24,87 @@ metrics = {
     "pop_density": "Population Density",
 }
 
-# merge country_id.csv with gaominder.csv'
-gap = pd.read_csv(os.path.join(current_dir, "../data/gapminder.csv"))
-country_ids = pd.read_csv(os.path.join(current_dir, "../data/country_ids.csv"))
-gap = gap.merge(country_ids, how="outer", on=["country"])
+############################## CONTROL PANEL FILTERS ##############################
+FILTER_STYLE = {"background-color": "#f8f9fa"}
 
-# add log income for bubble chart
-gap["log_income"] = gap["income"].apply(np.log)
-
-
-########################################
-LAYOUT_SYLE = {"background-color": "#f8f9fa"}
-layout = dbc.Card(
-    [
-        # control panel title
-        html.H2("Control Panel", className="text-center"),
-        # filter for Statistic of Interest
-        html.Hr(),
-        dbc.FormGroup(
-            [
-                html.H5("1. Metric", className="text-left"),
-                dbc.RadioItems(
-                    id="metric",
-                    value="life_expectancy",
-                    labelStyle={"display": "block"},
-                    options=[{"label": v, "value": k} for k, v in metrics.items()],
-                ),
-            ]
-        ),
-        html.Hr(),
-        # filter for Region
-        dbc.FormGroup(
-            [
-                html.H5("2. Region", className="text-left"),
-                dcc.Dropdown(
-                    id="region",
-                    options=[
-                        {"label": reg, "value": reg}
-                        for reg in gap["region"].dropna().unique()
-                    ],
-                    value=None,
-                ),
-            ]
-        ),
-        html.Hr(),
-        # filter for Sub Region
-        dbc.FormGroup(
-            [
-                html.H5("3. Sub Region", className="text-left"),
-                dcc.Dropdown(id="sub_region", value=None),
-            ]
-        ),
-        html.Hr(),
-        # filter for year
-        dbc.FormGroup(
-            [
-                html.H5("4. Year", className="text-left"),
-                dcc.Slider(
-                    min=1970,
-                    max=2010,
-                    step=5,
-                    value=2010,
-                    id="yr",
-                    marks={
-                        str(i): {"label": str(i), "style": {"color": "black"}}
-                        for i in range(1970, 2015, 5)
-                    },
-                    # marks={'label' : {str(i), 'style':{'color':'black'}} for i in range(1970, 2015, 6)},
-                ),
-            ]
-        ),
-        html.Hr(),
-        html.Small(
-            "Note: empty plots mean that we don't have data based on your selection"
-        ),
-    ],
-    # color="secondary",
-    # inverse=True,
-    style=LAYOUT_SYLE,
+filter_panel = dbc.Card(
+    dbc.Col(
+        [
+            # control panel title
+            html.H2("Control Panel", className="text-center"),
+            html.Br(),
+            # metric radio button
+            dbc.Row(
+                [
+                    html.H5("1. Metric", className="text-left"),
+                    dbc.RadioItems(
+                        id="metric",
+                        value="life_expectancy",
+                        labelStyle={"display": "block"},
+                        options=[{"label": v, "value": k} for k, v in metrics.items()],
+                    ),
+                ]
+            ),
+            html.Br(),
+            # continent drop down
+            dbc.Row(
+                [
+                    html.H5("2. Continent", className="text-left"),
+                    dcc.Dropdown(
+                        id="region",
+                        options=[
+                            {"label": reg, "value": reg}
+                            for reg in gap["region"].dropna().unique()
+                        ],
+                        value=None,
+                    ),
+                ]
+            ),
+            html.Br(),
+            # sub-region drop down
+            dbc.Row(
+                [
+                    html.H5("3. Sub Region", className="text-left"),
+                    dcc.Dropdown(id="sub_region", value=None),
+                ]
+            ),
+            html.Br(),
+            # year slider
+            dbc.Row(
+                [
+                    html.H5("4. Year", className="text-left"),
+                    dcc.Slider(
+                        min=1970,
+                        max=2010,
+                        step=5,
+                        value=2010,
+                        id="yr",
+                        marks={
+                            str(i): {"label": str(i), "style": {"color": "black"}}
+                            for i in range(1970, 2015, 5)
+                        },
+                    ),
+                ]
+            ),
+            html.Br(),
+            # empty plot message
+            html.Small(
+                "Note: If a plot is empty, this means that there is no data based on your selections."
+            ),
+        ],
+    ),
+    style=FILTER_STYLE,
     body=True,
 )
 
-boxPlot = html.Iframe(
-    id="boxPlot",
+############################## PLOT OBJECTS #######################################
+boxplot = html.Iframe(
+    id="boxplot",
     style={"border-width": "0", "width": "100%", "min-height": "400px"},
 )
 
-bubble_chart = html.Iframe(
-    id="bubble_chart",
+bubblechart = html.Iframe(
+    id="bubblechart",
     style={"border-width": "0", "width": "100%", "height": "400px"},
 )
 
@@ -123,153 +121,56 @@ worldmap = html.Iframe(
     id="worldmap", style={"border-width": "0", "width": "100%", "min-height": "400px"}
 )
 
+############################## DASHBOARD LAYOUT ###################################
 app.layout = dbc.Container(
     [
+        # title
         html.Div(
             style={"textAlign": "center", "color": "Gray", "font-size": "26px"},
             children=[
                 html.H1("Mindthegap Dashboard"),
             ],
         ),
-        html.Hr(),
+        html.Br(),
         dbc.Row(
             [
-                dbc.Col(layout, md=3),
+                # control panel
+                dbc.Col(filter_panel, md=3),
+                # grid of 4 plots
                 dbc.Col(
                     [
-                        dbc.Row(worldmap, align="center"),
-                        dbc.Row(
-                            [dbc.Col([bubble_chart], md=6), dbc.Col([barchart], md=6)]
-                        ),
-                        dbc.Row(dbc.Col([boxPlot], md=6)),
+                        dbc.Row([dbc.Col(worldmap, md=6), dbc.Col(boxplot, md=6)]),
+                        dbc.Row([dbc.Col(barchart, md=6), dbc.Col(bubblechart, md=6)]),
                     ],
                     md=9,
                 ),
-            ],
+            ]
         ),
     ],
     fluid=True,
 )
 
-
-################
-
-
-@app.callback(
-    Output("worldmap", "srcDoc"),
-    Input("metric", "value"),
-    Input("yr", "value"),
-)
-def plot(metric, yr):
-    return plot_world_map(metric, yr)
-
-
+############################## HELPER FUNCTIONS ###################################
 def filter_year(yr):
-    return gap.loc[gap["year"] == yr]
+    """Filter the gapminder dataset based on a year filter
 
-
-def plot_world_map(metric, yr):
-
-    world = data.world_110m()
-    world_map = alt.topo_feature(data.world_110m.url, "countries")
-    alt.data_transformers.disable_max_rows()
-    df = filter_year(yr)
-
-    chart = (
-        alt.Chart(world_map, title=f"{metrics[metric]} by country for year {yr}")
-        .mark_geoshape(stroke="black")
-        .transform_lookup(
-            lookup="id", from_=alt.LookupData(df, key="id", fields=["country", metric])
-        )
-        .encode(
-            tooltip=["country:O", metric + ":Q"],
-            color=alt.Color(metric + ":Q", title=metrics[metric]),
-        )
-        .properties(width=1000)
-    )
-    return chart.to_html()
-
-
-@app.callback(
-    Output("sub_region", "options"),
-    Input("region", "value"),
-)
-def get_sub_region(region):
-    if region is None:
-        options = [
-            {"label": sub_region, "value": sub_region}
-            for sub_region in gap["sub_region"].dropna().unique()
-        ]
-    else:
-        sub_regions = list(gap[gap["region"] == region]["sub_region"].unique())
-        options = []
-        for sr in sub_regions:
-            options.append({"label": sr, "value": sr})
-    return options
-
-
-@app.callback(
-    Output("boxPlot", "srcDoc"),
-    Input("metric", "value"),
-    Input("region", "value"),
-    Input("sub_region", "value"),
-    Input("yr", "value"),
-)
-def plot_box_plot(metric, region, sub_region, yr):
-    """
-    Create box chart for statsitic of interested based on selected filters for income groups
     Parameters
-    --------
-    metric: string
-        Selection from statistic of interest filter
-    region: string
-        Selection from the region filter
-    sub_region: sting
-        Selection from Sub Region filter
-    year: integer
-        Year for which the data is displayed, from Year filter
+    ----------
+    yr : int
+        The year to filter for
+
     Returns
-    --------
-    chart
-        bar chart showing statistic of interest for income groups,
-        in specific region, subregion and year
-    Example
-    --------
-    > plot_box_plot("child_mortality", "Asia", "Western Asia", None, 2015)
+    -------
+    pandas DataFrame
+        The filtered dataset
     """
-    alt.data_transformers.disable_max_rows()
-
-    # filter by region, sub-region & year
-    data = filter_data(region, sub_region, None, yr)
-
-    data = data[data["income_group"].notnull()]
-
-    chart = (
-        alt.Chart(
-            data,
-            title=f"{metrics[metric]} group by Income Group for year {yr}",
-        )
-        .mark_boxplot()
-        .encode(
-            x=alt.X("income_group", sort="-x", title="Income Group"),
-            y=alt.Y(metric, title=metrics[metric]),
-            color=alt.Color(
-                "income_group",
-                sort=alt.EncodingSortField("income_group", order="descending"),
-                title="Income Group",
-            ),
-            tooltip=("name:O", "child_mortality:Q"),
-        )
-        .configure_axis(labelFontSize=12, titleFontSize=14)
-        .configure_legend(labelFontSize=12)
-        .properties(width=200)
-    )
-    return chart.to_html()
+    return gap.loc[gap["year"] == yr]
 
 
 def filter_data(region, sub_region, country, yr):
     """
     Filter data based on region, sub region and country selection
+
     Parameters
     --------
     region: string
@@ -280,13 +181,15 @@ def filter_data(region, sub_region, country, yr):
         Selection from Country filter
     yr: string
         Selection from  Year
+
     Returns
     --------
     data
         dataset that has been filtered on region, sub region and country selection
+
     Example
     --------
-    > filter_data(d"Asia", "Western Asia", "Yemen", 2015)
+    > filter_data("Asia", "Western Asia", "Yemen", 2015)
     """
     # Filter by region, sub-region, country
     if country:
@@ -304,32 +207,190 @@ def filter_data(region, sub_region, country, yr):
     return data
 
 
-@app.callback(Output("bubble_chart", "srcDoc"), Input("yr", "value"))
-def plot_bubble_chart(yr):
-    """Create a bubble chart for income vs. life expectancy for a given year.
+@app.callback(
+    Output("sub_region", "options"),
+    Input("region", "value"),
+)
+def get_sub_region(region):
+    """Get a sub region value(s) based on a region value in gapminder
 
     Parameters
     ----------
-    yr : int
-        The year to filter for.
+    region : string
+        The region to get subregions for
 
     Returns
     -------
-    chart
-        The bubble chart.
+    options
+        Dict of subregion label/values
     """
+    if region is None:
+        options = [
+            {"label": sub_region, "value": sub_region}
+            for sub_region in gap["sub_region"].dropna().unique()
+        ]
+    else:
+        sub_regions = list(gap[gap["region"] == region]["sub_region"].unique())
+        options = []
+        for sr in sub_regions:
+            options.append({"label": sr, "value": sr})
+    return options
+
+
+############################## PLOTTING FUNCTIONS #################################
+@app.callback(
+    Output("worldmap", "srcDoc"),
+    Input("metric", "value"),
+    Input("yr", "value"),
+)
+def plot_world_map(metric, yr):
+    """
+    Create world heatmap for statsitic of interest based on selected year filter.
+
+    Parameters
+    --------
+    metric: string
+        Selection from statistic of interest filter
+    yr: integer
+        Year for which the data is displayed, from Year filter
+
+    Returns
+    --------
+    chart
+        World heatmap for statistic of interest based on year filter
+
+    Example
+    --------
+    > plot_world_map("child_mortality", "Asia", 2015)
+    """
+    world = data.world_110m()
+    world_map = alt.topo_feature(data.world_110m.url, "countries")
+    alt.data_transformers.disable_max_rows()
     df = filter_year(yr)
 
     chart = (
-        alt.Chart(df, title="Income vs. Life Expectancy")
+        alt.Chart(world_map, title=f"{metrics[metric]} by country for year {yr}")
+        .mark_geoshape(stroke="black")
+        .transform_lookup(
+            lookup="id", from_=alt.LookupData(df, key="id", fields=["country", metric])
+        )
+        .encode(
+            tooltip=["country:O", metric + ":Q"],
+            color=alt.Color(metric + ":Q", title=metrics[metric]),
+        )
+        .properties(width=750, height=350)
+    )
+    return chart.to_html()
+
+
+@app.callback(
+    Output("boxplot", "srcDoc"),
+    Input("metric", "value"),
+    Input("region", "value"),
+    Input("sub_region", "value"),
+    Input("yr", "value"),
+)
+def plot_box_plot(metric, region, sub_region, yr):
+    """
+    Create box chart for statsitic of interested based on selected filters for income groups
+
+    Parameters
+    --------
+    metric: string
+        Selection from statistic of interest filter
+    region: string
+        Selection from the region filter
+    sub_region: sting
+        Selection from sub region filter
+    yr: integer
+        Year for which the data is displayed, from Year filter
+
+    Returns
+    --------
+    chart
+        Bar chart showing statistic of interest for income groups,
+        in specific region, subregion and year
+
+    Example
+    --------
+    > plot_box_plot("child_mortality", "Asia", "Western Asia", 2015)
+    """
+    alt.data_transformers.disable_max_rows()
+
+    # filter by region, sub-region & year
+    data = filter_data(region, sub_region, None, yr)
+
+    data = data[data["income_group"].notnull()]
+
+    chart = (
+        alt.Chart(
+            data,
+            title=f"{metrics[metric]} group by Income Group for year {yr}",
+        )
+        .mark_boxplot(size=50)
+        .encode(
+            alt.X("income_group", sort="-x", title="Income Group"),
+            alt.Y(metric, title=metrics[metric], scale=alt.Scale(zero=False)),
+            color=alt.Color(
+                "income_group",
+                sort=alt.EncodingSortField("income_group", order="descending"),
+                title="Income Group",
+            ),
+            tooltip=("name:O", "child_mortality:Q"),
+        )
+        .configure_axis(labelFontSize=12, titleFontSize=14)
+        .configure_legend(labelFontSize=12)
+        .properties(width=250, height=350)
+    )
+    return chart.to_html()
+
+
+@app.callback(
+    Output("bubblechart", "srcDoc"),
+    Input("metric", "value"),
+    Input("region", "value"),
+    Input("sub_region", "value"),
+    Input("yr", "value"),
+)
+def plot_bubble_chart(metric, region, sub_region, yr):
+    """
+    Create bubble chart for statsitic of interested based on selected filters vs GDP
+
+    Parameters
+    --------
+    metric: string
+        Selection from statistic of interest filter
+    region: string
+        Selection from the region filter
+    sub_region: sting
+        Selection from sub region filter
+    yr: integer
+        Year for which the data is displayed, from Year filter
+
+    Returns
+    --------
+    chart
+        Bubble chart showing statistic of interest for income groups,
+        in specific region, subregion and year vs GDP.
+
+    Example
+    --------
+    > plot_bubble_chart("child_mortality", "Asia", "Western Asia", 2015)
+    """
+    df = filter_data(region, sub_region, None, yr)
+
+    chart = (
+        alt.Chart(df, title=f"{metrics[metric]} vs. GDP per Capita ($USD)")
         .mark_circle()
         .encode(
             alt.X(
-                "log_income", title="Income (Log Scale)", scale=alt.Scale(zero=False)
+                "log_income",
+                title="GDP per Capita ($USD Log Scale)",
+                scale=alt.Scale(zero=False),
             ),
             alt.Y(
-                "life_expectancy",
-                title="Life Expectancy (Years)",
+                metric,
+                title=metrics[metric],
                 scale=alt.Scale(zero=False),
             ),
             alt.Size(
@@ -338,12 +399,11 @@ def plot_bubble_chart(yr):
             alt.Color("region", title="Continent"),
         )
         .configure_axis(titleFontSize=14)
-    )
+    ).properties(width=500, height=300)
 
     return chart.to_html()
 
 
-# Set up callbacks/backend
 @app.callback(
     Output("barchart", "srcDoc"),
     Input("metric", "value"),
@@ -351,27 +411,30 @@ def plot_bubble_chart(yr):
     Input("sub_region", "value"),
     Input("yr", "value"),
 )
-def plot_country(metric, region, sub_region, yr):
-
-    """Create a bar chart for top 10 countries in terms of life expectancy.
+def plot_bar_chart(metric, region, sub_region, yr):
+    """
+    Create a bar chart for top 10 countries in terms of life expectancy.
 
     Parameters
-    ----------
+    --------
     metric: string
         Selection from statistic of interest filter
     region: string
         Selection from the region filter
-    sub_region: string
-        Selection from Sub Region filter
-    yr : int
-        The year to filter for.
+    sub_region: sting
+        Selection from sub region filter
+    yr: integer
+        Year for which the data is displayed, from Year filter
 
     Returns
     -------
     chart
         The bar chart that shows top 10 countries for filters selected
-    """
 
+    Example
+    --------
+    > plot_bar_chart("child_mortality", "Asia", "Western Asia", 2015)
+    """
     data = filter_data(region, sub_region, None, yr)
 
     country = (
@@ -387,7 +450,7 @@ def plot_country(metric, region, sub_region, yr):
             sort=[alt.SortField(metric, order="descending")],
         )
         .transform_filter((alt.datum.rank < 10))
-    )
+    ).properties(width=500, height=300)
 
     return country.to_html()
 
