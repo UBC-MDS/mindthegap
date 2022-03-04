@@ -8,7 +8,7 @@ import os
 # Current Path
 current_dir = os.path.abspath(os.path.dirname(__file__))
 
-app = Dash(__name__, external_stylesheets=['https://codepen.io/chriddyp/pen/bWLwgP.css'])
+app = Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
 server=app.server
 
 #dictionary to generate dynamic metrics in altair
@@ -22,29 +22,70 @@ gap = gap.merge(country_ids, how="outer", on=["country"])
 # add log income for bubble chart
 gap["log_income"] = gap["income"].apply(np.log)
 
-@app.callback(
-    Output("map", "srcDoc"),
-    Input("metric", "value"),
-    Input("yr", "value"),
+
+
+########################################
+
+layout = dbc.Card(
+    [
+        # control panel title
+        html.H2("Control Panel", className="text-center"),
+        # filter for Statistic of Interest
+        html.Hr(),
+        dbc.FormGroup(
+            [
+                html.H5("1. Metric", className="text-left"),
+                dcc.RadioItems(id='metric', 
+                   value='life_expectancy', 
+                   labelStyle={"display": "block"},
+                   options=[{'label': v, 'value': k} for k, v in metrics.items()],
+                
+            )
+            ]
+        ),
+        html.Hr(),
+        # filter for Region
+        dbc.FormGroup(
+            [
+                html.H5("2. Region", className="text-left"),
+                dcc.Dropdown(id='region', 
+                options=[{"label": reg, "value": reg} for reg in gap["region"].dropna().unique()],
+                value=None
+        )
+            ]
+        ),
+        html.Hr(),
+        # filter for Sub Region
+        dbc.FormGroup(
+            [html.H5("3. Sub Region", className="text-left"), 
+           dcc.Dropdown(id='sub_region',
+        
+        value=None) ,
+        ]
+        ),
+       
+        html.Hr(),
+        # filter for year
+        dbc.FormGroup([html.H5("6. Year", className="text-left"),
+        dcc.Slider(
+        min=1970,
+        max=2010,
+        step=5,
+        value=2010,
+        id='yr',
+        marks={str(i) : {'label' : str(i), 'style':{'color':'black'}} for i in range(1970, 2015, 5)},
+
+        # marks={'label' : {str(i), 'style':{'color':'black'}} for i in range(1970, 2015, 6)},
+        ),
+        ]),
+        html.Hr(),
+        html.Small("Note: empty plots mean that we don't have data based on your selection"),
+        
+    ],
+    color="secondary",
+    # inverse=True,
+    body=True,
 )
-def plot(metric, yr):
-    return plot_world_map(metric, yr)
-
-def filter_year(yr):
-    return gap.loc[gap['year']==yr]
-
-def plot_world_map(metric, yr):
-
-    world = data.world_110m()
-    world_map = alt.topo_feature(data.world_110m.url, 'countries')
-    alt.data_transformers.disable_max_rows()
-    df = filter_year(yr)
-
-    chart = alt.Chart(world_map, title=f"{metrics[metric]} by country for year {yr}").mark_geoshape(stroke="black").transform_lookup(lookup="id", from_=alt.LookupData(df, key="id", fields=["country", metric])
-            ).encode(
-                tooltip=["country:O", metric + ":Q"],
-                color=alt.Color(metric + ":Q", title=metrics[metric]))
-    return chart.to_html()
 
 boxPlot = html.Iframe(
     id="boxPlot",
@@ -73,66 +114,93 @@ barchart = html.Iframe(
     },
 )
 
-app.layout = html.Div([
-    
-    dcc.RadioItems(id='metric', value='life_expectancy',
-        options=[{'label': v, 'value': k} for k, v in metrics.items()]),
+worldmap = html.Iframe(
+    id="worldmap",
+    style={
+         "border-width": "0",
+        "width": "100%",
+        "height": "400px"
+    }
+)
 
-    # adding the slider instead to filter year
-    html.H3('Year'),
-    html.P('The user can slide over the years to filter the year'),
-    dcc.Slider(
-        min=1970,
-        max=2010,
-        step=5,
-        value=2010,
-        id='yr',
-        marks={i: str(i) for i in range(1970, 2015, 5)},
+app.layout = dbc.Container(
+    [
+        html.Div(
+            style={
+                "textAlign": "center",
+                "color": "Gray",
+                "font-size": "26px"
+            },
+            children=[
+                html.H1("The Gapminder Dashboard"),
+            ],
         ),
-    # html.Br(),
-    # 'Year',
-    # dcc.Dropdown(id='yr', 
-    #     options=[
-    #             {'label': 1990, 'value': 1990},
-    #             {'label': 2000, 'value': 2000},
-    #             {'label': 2012, 'value': 2012},
-    #             {'label': 2015, 'value': 2015}
-    #             ],
-    #         value=2012) ,
-    # html.Br(),
-    html.H3('Region'),
-    dcc.Dropdown(id='region', 
-        options=[{"label": reg, "value": reg} for reg in gap["region"].dropna().unique()],
-        value=None
+        html.Hr(),
+        dbc.Row(
+            [
+                dbc.Col(layout, md=4),
+                dbc.Col(
+                    [
+                        dbc.Row(worldmap, align="center"),
+                        dbc.Row([dbc.Col([boxPlot], md=6),  dbc.Col([barchart], md=6)]),
+                        dbc.Row(bubble_chart, align = "center"),
+        
+                    ],
+                    md=8,
+                ),
+            ],
+            align="center",
         ),
-    html.H3('Sub Region'),
-    dcc.Dropdown(id='sub_region',
-        options=[{"label": sub_reg, "value": sub_reg} for sub_reg in gap["sub_region"].dropna().unique()],
-        value=None) ,
-    # html.H3('Country'),
-    # dcc.Dropdown(id='country',
-    #     value=None),
-    html.Br(),
-    dbc.Row(
-        [
-            dbc.Col(
-                [
-                    dbc.Row(
-                        html.Iframe(
-                            id='map',
-                            style={'border-width': '0', 'width': '100%', 'height': '600px'}
-                        )
-                    ),
-                    dbc.Row(boxPlot),
-                    dbc.Row(bubble_chart),
-                    dbc.Row(barchart)
-                ],
-                md=8,
-            ),
-        ],
-        align="center",
-    ),
-])
+    ],
+    fluid=True,
+)
+
+
+
+
+################
+
+
+@app.callback(
+    Output("worldmap", "srcDoc"),
+    Input("metric", "value"),
+    Input("yr", "value"),
+)
+def plot(metric, yr):
+    return plot_world_map(metric, yr)
+
+def filter_year(yr):
+    return gap.loc[gap['year']==yr]
+
+def plot_world_map(metric, yr):
+
+    world = data.world_110m()
+    world_map = alt.topo_feature(data.world_110m.url, 'countries')
+    alt.data_transformers.disable_max_rows()
+    df = filter_year(yr)
+
+    chart = alt.Chart(world_map, title=f"{metrics[metric]} by country for year {yr}").mark_geoshape(stroke="black").transform_lookup(lookup="id", from_=alt.LookupData(df, key="id", fields=["country", metric])
+            ).encode(
+                tooltip=["country:O", metric + ":Q"],
+                color=alt.Color(metric + ":Q", title=metrics[metric]))
+    return chart.to_html()
+
+
+@app.callback(
+    Output("sub_region", "options"),
+    Input("region", "value"),
+)
+def get_sub_region(region):
+    if region is None:
+        options = [{"label": sub_region, "value": sub_region} for sub_region in gap["sub_region"].dropna().unique()]
+    else:
+        sub_regions = list(gap[gap['region']==region]['sub_region'].unique())
+        options=[]
+        for sr in sub_regions:
+            options.append({"label":sr, "value":sr})
+    return options
+
+
 
 @app.callback(
     Output("boxPlot", "srcDoc"),
@@ -229,7 +297,9 @@ def filter_data(region, sub_region, country, yr):
 
     return data
 
-@app.callback(Output("bubble_chart", "srcDoc"), Input("yr", "value"))
+@app.callback(
+    Output("bubble_chart", "srcDoc"), 
+    Input("yr", "value"))
 def plot_bubble_chart(yr):
     """Create a bubble chart for income vs. life expectancy for a given year.
 
@@ -275,7 +345,6 @@ def plot_bubble_chart(yr):
     Input("sub_region", "value"),
     Input("yr", "value"),
 )
-
 def plot_country(metric, region, sub_region, yr):
 
     """Create a bar chart for top 10 countries in terms of life expectancy.
