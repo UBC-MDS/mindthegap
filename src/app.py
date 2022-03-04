@@ -128,26 +128,22 @@ app.layout = dbc.Container(
                 html.H1("Mindthegap Dashboard"),
             ],
         ),
-        html.Hr(),
+        html.Br(),
         dbc.Row(
             [
                 dbc.Col(layout, md=3),
                 dbc.Col(
                     [
-                        dbc.Row(worldmap, align="center"),
-                        dbc.Row(
-                            [dbc.Col([bubble_chart], md=6), dbc.Col([barchart], md=6)]
-                        ),
-                        dbc.Row(dbc.Col([boxPlot], md=6)),
+                        dbc.Row([dbc.Col(worldmap, md=6), dbc.Col(boxPlot, md=6)]),
+                        dbc.Row([dbc.Col(barchart, md=6), dbc.Col(bubble_chart, md=6)]),
                     ],
                     md=9,
                 ),
-            ],
+            ]
         ),
     ],
     fluid=True,
 )
-
 
 ################
 
@@ -182,7 +178,7 @@ def plot_world_map(metric, yr):
             tooltip=["country:O", metric + ":Q"],
             color=alt.Color(metric + ":Q", title=metrics[metric]),
         )
-        .properties(width=1000)
+        .properties(width=750, height=350)
     )
     return chart.to_html()
 
@@ -246,10 +242,10 @@ def plot_box_plot(metric, region, sub_region, yr):
             data,
             title=f"{metrics[metric]} group by Income Group for year {yr}",
         )
-        .mark_boxplot()
+        .mark_boxplot(size=50)
         .encode(
-            x=alt.X("income_group", sort="-x", title="Income Group"),
-            y=alt.Y(metric, title=metrics[metric]),
+            alt.X("income_group", sort="-x", title="Income Group"),
+            alt.Y(metric, title=metrics[metric], scale=alt.Scale(zero=False)),
             color=alt.Color(
                 "income_group",
                 sort=alt.EncodingSortField("income_group", order="descending"),
@@ -259,7 +255,7 @@ def plot_box_plot(metric, region, sub_region, yr):
         )
         .configure_axis(labelFontSize=12, titleFontSize=14)
         .configure_legend(labelFontSize=12)
-        .properties(width=200)
+        .properties(width=250, height=350)
     )
     return chart.to_html()
 
@@ -335,7 +331,7 @@ def plot_bubble_chart(yr):
             alt.Color("region", title="Continent"),
         )
         .configure_axis(titleFontSize=14)
-    )
+    ).properties(width=500, height=300)
 
     return chart.to_html()
 
@@ -384,7 +380,7 @@ def plot_country(metric, region, sub_region, yr):
             sort=[alt.SortField(metric, order="descending")],
         )
         .transform_filter((alt.datum.rank < 10))
-    )
+    ).properties(width=500, height=300)
 
     return country.to_html()
 
