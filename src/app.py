@@ -7,7 +7,7 @@ import dash_bootstrap_components as dbc
 import os
 
 
-app = Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
+app = Dash(title="Mindthegap Dashboard", external_stylesheets=[dbc.themes.BOOTSTRAP])
 server = app.server
 
 # read in gapminder and continent data
