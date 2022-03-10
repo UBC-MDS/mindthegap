@@ -41,6 +41,41 @@ Our dashboard contains four key visualizations arranged in a 2x2 grid:
 3. A bar chart that shows the top 10 countries for the selected metric of interest, in terms of the countries with the top 10 highest values for this metric.
 4. A bubble chart that displays the GDP per capita (in $USD) on a log scale vs. the selected metric of interest.  The size of the bubbles is based on the population of the countries displayed in the chart.
 
+## Usage
+
+To replicate the analysis, clone this GitHub repository, install the dependencies listed below, and run the following command at the command line / terminal from the root directory of this project:
+
+#### 1. Using Docker
+
+Install [Docker](https://www.docker.com/get-started). Run the following command in the command line from the root directory of this project:
+
+To build the docker image, run the following command at the command line/terminal from the root directory of this project:
+
+    docker-compose build
+
+To run the docker container, run the following command at the command line/terminal from the root directory of this project:
+
+    docker-compose up
+
+Open your browser at http://0.0.0.0:8000 to assess the app.
+#### 2. Without using Docker
+
+To replicate the analysis, clone this GitHub repository, install the dependencies listed below, and run the following command at the command line / terminal from the root directory of this project.
+
+Install all the dependencies listed under the "Dependencies" header. To create and activate the environment, run the following commands in the command line from the root directory of this project:
+
+``` shell
+# create the virtual env
+conda create --name mindthegap --file requirements.txt
+
+# activate it
+conda activate mindthegap
+
+# Run the app
+python src/app.py
+```
+
+Open your browser at http://0.0.0.0:8000 to assess the app.
 ## Contributions
 
 ### Core contributors

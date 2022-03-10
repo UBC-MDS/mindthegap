@@ -1,0 +1,10 @@
+# docker-compose.yml
+version: '3'
+services:
+  # main application
+  mindthegap:
+    container_name: mindthegap
+    build:
+      .
+    ports:
+      - "8000:8000"
