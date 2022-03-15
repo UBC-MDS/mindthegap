@@ -69,23 +69,21 @@ filter_panel = dbc.Card(
                 ]
             ),
             html.Br(),
-            # year slider
+
             dbc.Row(
                 [
-                    html.H5("4. Year", className="text-left"),
-                    dcc.Slider(
-                        min=1970,
-                        max=2010,
-                        step=5,
-                        value=2010,
-                        id="yr",
-                        marks={
-                            str(i): {"label": str(i), "style": {"color": "black"}}
-                            for i in range(1970, 2015, 5)
-                        },
+                    html.H5("4. Country", className="text-left"),
+                    dcc.Dropdown(id="cntry", 
+                    options=[
+                            {"label": c, "value": c}
+                            for c in gap["country"].dropna().unique()
+                        ],
+                    value=None
                     ),
                 ]
             ),
+            html.Br(),
+            
             html.Br(),
             # empty plot message
             html.Small(
@@ -132,6 +130,28 @@ app.layout = dbc.Container(
             ],
         ),
         html.Br(),
+        
+        dbc.Row([
+            dbc.Col( md=3),
+            #year slider
+            dbc.Col(
+                [
+                    html.H5("Year", className="text-left"),
+                    dcc.Slider(
+                        min=1970,
+                        max=2010,
+                        step=5,
+                        value=2010,
+                        id="yr",
+                        marks={
+                            str(i): {"label": str(i), "style": {"color": "black"}}
+                            for i in range(1970, 2015, 5)
+                        },
+                    ),
+                ]),]
+),
+html.Br(),
+
         dbc.Row(
             [
                 # control panel
@@ -215,6 +235,38 @@ def get_sub_region(region):
         for sr in sub_regions:
             options.append({"label": sr, "value": sr})
     return options
+
+
+    @app.callback(
+
+    Output("country", "options"),
+    Input("region", "value"),
+    Input("sub_region", "value"),
+    )
+    def get_country(region, sub_region):
+
+        """Get a sub region value(s) based on a region value in gapminder
+        Parameters
+        ----------
+        region : string
+            The region to get subregions for
+        Returns
+        -------
+        options
+            Dict of subregion label/values
+        """
+        options = [{"label": cntry, "value": cntry} for cntry in gap["country"].dropna().unique()]
+        # if region is None and sub_region is None:
+        #     options = [
+        #         {"label": cntry, "value": cntry}
+        #         for cntry in gap["country"].dropna().unique()
+        #     ]
+        # else:
+        #     countries = list(gap[gap["region"] == region]["country"].unique())
+        #     options = []
+        #     for c in countries:
+        #         options.append({"label": c, "value": c})
+        return options
 
 
 ############################## PLOTTING FUNCTIONS #################################
