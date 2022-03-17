@@ -71,20 +71,20 @@ filter_panel = dbc.Card(
                 ]
             ),
             html.Br(),
-            dbc.Row(
-                [
-                    html.H5("4. Country", className="text-left"),
-                    dcc.Dropdown(
-                        id="cntry",
-                        options=[
-                            {"label": c, "value": c}
-                            for c in gap["country"].dropna().unique()
-                        ],
-                        value=None,
-                    ),
-                ]
-            ),
-            html.Br(),
+            # dbc.Row(
+            #     [
+            #         html.H5("4. Country", className="text-left"),
+            #         dcc.Dropdown(
+            #             id="cntry",
+            #             options=[
+            #                 {"label": c, "value": c}
+            #                 for c in gap["country"].dropna().unique()
+            #             ],
+            #             value=None,
+            #         ),
+            #     ]
+            # ),
+            # html.Br(),
             html.Br(),
             # empty plot message
             html.Small(
@@ -159,37 +159,39 @@ app.layout = dbc.Container(
                                     ],
                                     md=10,
                                 ),
-                                dbc.Col(
-                                    [
-                                        dbc.Row([dbc.Col(worldmap)]),
-                                        dbc.Row(
-                                            [
-                                                dbc.Col([barchart], md=6),
-                                                dbc.Col(
-                                                    [
-                                                        html.Div(
-                                                            dbc.Tabs(
-                                                                id="tabs",
-                                                                active_tab="gdp",
-                                                                children=[
-                                                                    dbc.Tab(
-                                                                        label="GDP",
-                                                                        tab_id="gdp",
-                                                                    ),
-                                                                    dbc.Tab(
-                                                                        label="Income",
-                                                                        tab_id="income",
-                                                                    ),
-                                                                ],
+                                dcc.Loading(
+                                    children=dbc.Col(
+                                        [
+                                            dbc.Row([dbc.Col(worldmap)]),
+                                            dbc.Row(
+                                                [
+                                                    dbc.Col([barchart], md=6),
+                                                    dbc.Col(
+                                                        [
+                                                            html.Div(
+                                                                dbc.Tabs(
+                                                                    id="tabs",
+                                                                    active_tab="gdp",
+                                                                    children=[
+                                                                        dbc.Tab(
+                                                                            label="GDP",
+                                                                            tab_id="gdp",
+                                                                        ),
+                                                                        dbc.Tab(
+                                                                            label="Income",
+                                                                            tab_id="income",
+                                                                        ),
+                                                                    ],
+                                                                ),
                                                             ),
-                                                        ),
-                                                        html.Div(id="tab-content"),
-                                                    ]
-                                                ),
-                                            ]
-                                        ),
-                                    ],
-                                    md=12,
+                                                            html.Div(id="tab-content"),
+                                                        ]
+                                                    ),
+                                                ]
+                                            ),
+                                        ],
+                                        md=12,
+                                    )
                                 ),
                             ]
                         )
@@ -200,6 +202,18 @@ app.layout = dbc.Container(
     ],
     fluid=True,
 )
+
+############################## LOADING FUNCTIONS ##########################################
+@app.callback(
+    Output("output-area", "srcDoc"),
+    Input("metric", "value"),
+    Input("region", "value"),
+    Input("sub_region", "value"),
+    Input("yr", "value"),
+)
+def update_live_graph():
+    return
+
 
 ############################## HELPER FUNCTIONS ###################################
 @app.callback(Output("tab-content", "children"), Input("tabs", "active_tab"))
