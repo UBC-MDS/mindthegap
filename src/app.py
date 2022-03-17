@@ -579,6 +579,7 @@ def plot_bar_chart(metric, region, sub_region, yr):
             y=alt.Y("country", sort="-x", title="Country"),
             x=alt.X(metric, title=metrics[metric]),
             color=alt.Color(metric + ":Q", title=metrics[metric]),
+            tooltip=("country:O", metric + ":Q")
         )
         .transform_window(
             rank="rank(life_expectancy)",
