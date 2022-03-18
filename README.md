@@ -27,25 +27,25 @@ You can find the interactive dashboard at this [link](https://dsci532-2022-mindt
 
 The control panel of our dashboard allows you to perform the following:
 
-- Select a metric of interest to visualize
-- Filter the visualizations based on a specific continent of interest
-- Filter the visualizations based on a specific sub-region of a continent of interest
+- Select a metric of interest to visualize (life expectancy, child mortality, or population density)
+- Filter the visualizations based on a specific continent of interest (e.g. Asia)
+- Filter the visualizations based on a specific sub-region of a continent of interest (e.g. Southern Asia)
 - Filter the visualizations for a specific year from 1970 to 2010, with 5 year increments
 
 ### Visualizations
 
-Our dashboard contains four key visualizations arranged in a 2x2 grid:
+Our dashboard contains four key visualizations:
 
 1. A global map that is coloured as a heat map based on the selected metric of interest in the control panel.
-2. A boxplot that displays the distribution of the selected metric of interest for each of the following income groups: upper middle, lower middle, low, and high.
-3. A bar chart that shows the top 10 countries for the selected metric of interest, in terms of the countries with the top 10 highest values for this metric.
-4. A bubble chart that displays the GDP per capita (in $USD) on a log scale vs. the selected metric of interest.  The size of the bubbles is based on the population of the countries displayed in the chart.
+2. A bar chart that shows the countries with the top 10 (highest), or bottom 10 (lowest) values for the selected metric of interest.
+3. A bubble chart that displays the GDP per capita (in $USD) on a log scale vs. the selected metric of interest.  The size of the bubbles is based on the population of the countries displayed in the chart.
+4. A boxplot that displays the distribution of the selected metric of interest for each of the following income groups: upper middle, lower middle, low, and high.
 
 ## Usage
 
 To replicate the analysis, clone this GitHub repository, install the dependencies listed below, and run the following command at the command line / terminal from the root directory of this project:
 
-#### 1. Using Docker
+### 1. Using Docker
 
 Install [Docker](https://www.docker.com/get-started). Run the following command in the command line from the root directory of this project:
 
@@ -57,8 +57,9 @@ To run the docker container, run the following command at the command line/termi
 
     docker-compose up
 
-Open your browser at http://0.0.0.0:8000 to assess the app.
-#### 2. Without using Docker
+Open your browser at <http://0.0.0.0:8000> to assess the app.
+
+### 2. Without using Docker
 
 To replicate the analysis, clone this GitHub repository, install the dependencies listed below, and run the following command at the command line / terminal from the root directory of this project.
 
@@ -75,7 +76,8 @@ conda activate mindthegap
 python src/app.py
 ```
 
-Open your browser at http://0.0.0.0:8000 to assess the app.
+Open your browser at <http://0.0.0.0:8000> to assess the app.
+
 ## Contributions
 
 ### Core contributors
