@@ -117,7 +117,8 @@ barchart = html.Iframe(
 )
 
 worldmap = html.Iframe(
-    id="worldmap", style={"border-width": "0", "width": "100%", "min-height": "400px"}
+    id="worldmap", 
+    style={"border-width": "4px", "width": "100%", "min-height": "400px"}
 )
 
 ############################## DASHBOARD LAYOUT ###################################
@@ -134,7 +135,7 @@ app.layout = dbc.Container(
         dbc.Row(
             [
                 # control panel
-                dbc.Col(filter_panel, md=3),
+                dbc.Col(filter_panel, md=3, lg=3, sm=3),
                 dbc.Col(
                     [
                         dbc.Row(
@@ -157,16 +158,30 @@ app.layout = dbc.Container(
                                             },
                                         ),
                                     ],
-                                    md=10,
+                                    md=10
                                 ),
-                                dbc.Col(
-                                    [
+                                
+                                dbc.Col([
+                                    dbc.Card(
+                                    
                                         dbc.Row([dbc.Col(worldmap)]),
+                                        
+                                            ),
+                                            html.Br(),
+                                            html.Br(),
                                         dbc.Row(
                                             [
-                                                dbc.Col([barchart], md=6),
                                                 dbc.Col(
                                                     [
+                                                    dbc.Card(
+                                                        barchart
+                                                        )
+                                                    ], 
+                                                    md=6
+                                                ),
+                                                dbc.Col(
+                                                    [
+                                                        dbc.Card([
                                                         html.Div(
                                                             dbc.Tabs(
                                                                 id="tabs",
@@ -183,13 +198,14 @@ app.layout = dbc.Container(
                                                                 ],
                                                             ),
                                                         ),
-                                                        html.Div(id="tab-content"),
-                                                    ]
-                                                ),
+                                                        html.Div(id="tab-content")
+                                                        ])
+                                                        ],
+                                                md=6),
                                             ]
                                         ),
                                     ],
-                                    md=12,
+                                    md=10
                                 ),
                             ]
                         )
@@ -341,7 +357,7 @@ def plot_world_map(metric, region, yr):
                 tooltip=["country:O", metric + ":Q"],
                 color=alt.Color(metric + ":Q", title=metrics[metric]),
             )
-            .properties(width=500, height=350)
+            .properties(width=750, height=350)
         )
 
     else:
@@ -374,7 +390,7 @@ def plot_world_map(metric, region, yr):
                 color=alt.Color(metric + ":Q", title=metrics[metric]),
             )
             .project(type="naturalEarth1", scale=scl, translate=trans)
-            .properties(width=500, height=350)
+            .properties(width=750, height=350)
         )
     return chart.to_html()
 
@@ -434,6 +450,7 @@ def plot_box_plot(metric, region, sub_region, yr):
         .configure_axis(labelFontSize=12, titleFontSize=14)
         .configure_legend(labelFontSize=12)
         .properties(width=200, height=200)
+        .configure_legend(gradientLength=900, gradientThickness=400)
     )
     return chart.to_html()
 
