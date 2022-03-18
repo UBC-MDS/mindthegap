@@ -32,8 +32,13 @@ FILTER_STYLE = {"background-color": "#f8f9fa", "width": "14rem", "height": "100%
 filter_panel = dbc.Card(
     dbc.Col(
         [
+            html.Br(),
+            html.Br(),
+            
+            html.Br(),
             # control panel title
             html.H2("Control Panel", className="text-center"),
+            html.Br(),
             html.Br(),
             # metric radio button
             dbc.Row(
@@ -47,6 +52,7 @@ filter_panel = dbc.Card(
                     ),
                 ]
             ),
+            html.Br(),
             html.Br(),
             # continent drop down
             dbc.Row(
@@ -63,6 +69,7 @@ filter_panel = dbc.Card(
                 ]
             ),
             html.Br(),
+            html.Br(),
             # sub-region drop down
             dbc.Row(
                 [
@@ -71,19 +78,20 @@ filter_panel = dbc.Card(
                 ]
             ),
             html.Br(),
-            dbc.Row(
-                [
-                    html.H5("4. Country", className="text-left"),
-                    dcc.Dropdown(
-                        id="cntry",
-                        options=[
-                            {"label": c, "value": c}
-                            for c in gap["country"].dropna().unique()
-                        ],
-                        value=None,
-                    ),
-                ]
-            ),
+            html.Br(),
+            # dbc.Row(
+            #     [
+            #         html.H5("4. Country", className="text-left"),
+            #         dcc.Dropdown(
+            #             id="cntry",
+            #             options=[
+            #                 {"label": c, "value": c}
+            #                 for c in gap["country"].dropna().unique()
+            #             ],
+            #             value=None,
+            #         ),
+            #     ]
+            # ),
             html.Br(),
             html.Br(),
             # empty plot message
@@ -117,7 +125,8 @@ barchart = html.Iframe(
 )
 
 worldmap = html.Iframe(
-    id="worldmap", style={"border-width": "0", "width": "100%", "min-height": "400px"}
+    id="worldmap", 
+    style={"border-width": "4px", "width": "100%", "min-height": "400px"}
 )
 
 ############################## DASHBOARD LAYOUT ###################################
@@ -134,7 +143,7 @@ app.layout = dbc.Container(
         dbc.Row(
             [
                 # control panel
-                dbc.Col(filter_panel, md=3),
+                dbc.Col(filter_panel, md=5, lg=3, sm=3),
                 dbc.Col(
                     [
                         dbc.Row(
@@ -157,16 +166,51 @@ app.layout = dbc.Container(
                                             },
                                         ),
                                     ],
-                                    md=10,
+                                    md=10
                                 ),
-                                dbc.Col(
-                                    [
+                                
+                                dbc.Col([
+                                    dbc.Card(
+                                    
                                         dbc.Row([dbc.Col(worldmap)]),
+                                        
+                                            ),
+                                            html.Br(),
+                                            html.Br(),
                                         dbc.Row(
                                             [
-                                                dbc.Col([barchart], md=6),
                                                 dbc.Col(
                                                     [
+                                                    dbc.Card([
+                                                        dbc.Card(
+                                                            html.Div(
+                                                                [
+                                                                    # dbc.Label("Choose Top/Bottom by country"),
+                                                                    dbc.RadioItems(
+                                                                        options=[
+                                                                            {"label": "Top Countries", "value": "Top"},
+                                                                            {"label": "Bottom Countries", "value": "Bottom"},
+                                                                        ],
+                                                                        value="Top",
+                                                                        id="radio",
+                                                                        inline=True,
+                                                                        style={"align":"center"},
+                                                                        labelStyle={"align":"center"}
+                                                                    ),
+                                                                ]
+                                                            ),
+                                                            style={"height":"43px"}
+                                                        ),
+                                                        
+
+                                                        html.Div(barchart)
+                                                    ])
+                                                    ], 
+                                                    md=6
+                                                ),
+                                                dbc.Col(
+                                                    [
+                                                        dbc.Card([
                                                         html.Div(
                                                             dbc.Tabs(
                                                                 id="tabs",
@@ -183,13 +227,14 @@ app.layout = dbc.Container(
                                                                 ],
                                                             ),
                                                         ),
-                                                        html.Div(id="tab-content"),
-                                                    ]
-                                                ),
+                                                        html.Div(id="tab-content")
+                                                        ])
+                                                        ],
+                                                md=6),
                                             ]
                                         ),
                                     ],
-                                    md=12,
+                                    md=10
                                 ),
                             ]
                         )
@@ -341,7 +386,7 @@ def plot_world_map(metric, region, yr):
                 tooltip=["country:O", metric + ":Q"],
                 color=alt.Color(metric + ":Q", title=metrics[metric]),
             )
-            .properties(width=500, height=350)
+            .properties(width=750, height=350)
         )
 
     else:
@@ -374,7 +419,7 @@ def plot_world_map(metric, region, yr):
                 color=alt.Color(metric + ":Q", title=metrics[metric]),
             )
             .project(type="naturalEarth1", scale=scl, translate=trans)
-            .properties(width=500, height=350)
+            .properties(width=750, height=350)
         )
     return chart.to_html()
 
@@ -433,7 +478,9 @@ def plot_box_plot(metric, region, sub_region, yr):
         )
         .configure_axis(labelFontSize=12, titleFontSize=14)
         .configure_legend(labelFontSize=12)
-        .properties(width=200, height=200)
+        .properties(width=300, height=300)
+        .configure_legend(gradientLength=900, gradientThickness=400)
+
     )
     return chart.to_html()
 
@@ -468,7 +515,44 @@ def plot_bubble_chart(metric, region, sub_region, yr):
     > plot_bubble_chart("child_mortality", "Asia", "Western Asia", 2015)
     """
     df = filter_data(region, sub_region, None, yr)
-    if region is None and sub_region is None:
+
+    if region is not None and sub_region is None:
+        chart = (
+            (
+                alt.Chart(df, title=f"{metrics[metric]} vs. GDP per Capita ($USD)")
+                .mark_circle()
+                .encode(
+                    alt.X(
+                        "log_income",
+                        title="GDP per Capita ($USD Log Scale)",
+                        scale=alt.Scale(zero=False),
+                    ),
+                    alt.Y(
+                        metric,
+                        title=metrics[metric],
+                        scale=alt.Scale(zero=False),
+                    ),
+                    alt.Size(
+                        "population",
+                        title="Population",
+                        scale=alt.Scale(range=(10, 1000)),
+                    ),
+                    alt.Color("sub_region", title="Sub Continent"),
+                    tooltip=[
+                        alt.Tooltip("region", title="Continent"),
+                        alt.Tooltip("sub_region", title="Sub region"),
+                        alt.Tooltip("country", title="Country"),
+                        alt.Tooltip(metric, title=metrics[metric]),
+                        alt.Tooltip("income", title="GDP per Capita", format=","),
+                    ],
+                )
+                .configure_axis(titleFontSize=14)
+            )
+            .properties(width=300, height=300)
+            .configure_legend(gradientLength=900, gradientThickness=400)
+        )
+
+    elif region is None and sub_region is None:
         chart = (
             (
                 alt.Chart(df, title=f"{metrics[metric]} vs. GDP per Capita ($USD)")
@@ -500,7 +584,7 @@ def plot_bubble_chart(metric, region, sub_region, yr):
                 )
                 .configure_axis(titleFontSize=14)
             )
-            .properties(width=200, height=200)
+            .properties(width=300, height=300)
             .configure_legend(gradientLength=900, gradientThickness=400)
         )
     elif region is not None and sub_region is not None:
@@ -535,7 +619,7 @@ def plot_bubble_chart(metric, region, sub_region, yr):
                 )
                 .configure_axis(titleFontSize=14)
             )
-            .properties(width=200, height=200)
+            .properties(width=300, height=300)
             .configure_legend(gradientLength=900, gradientThickness=400)
         )
 
@@ -546,10 +630,11 @@ def plot_bubble_chart(metric, region, sub_region, yr):
     Output("barchart", "srcDoc"),
     Input("metric", "value"),
     Input("region", "value"),
+    Input("radio", "value"),
     Input("sub_region", "value"),
     Input("yr", "value"),
 )
-def plot_bar_chart(metric, region, sub_region, yr):
+def plot_bar_chart(metric, region, radio, sub_region, yr):
     """
     Create a bar chart for top 10 countries in terms of life expectancy.
     Parameters
@@ -558,6 +643,8 @@ def plot_bar_chart(metric, region, sub_region, yr):
         Selection from statistic of interest filter
     region: string
         Selection from the region filter
+    radio: int
+        Selection of radio button as Top or Bottom
     sub_region: sting
         Selection from sub region filter
     yr: integer
@@ -571,9 +658,12 @@ def plot_bar_chart(metric, region, sub_region, yr):
     > plot_bar_chart("child_mortality", "Asia", "Western Asia", 2015)
     """
     data = filter_data(region, sub_region, None, yr)
-
+    if radio == "Top":
+        order="descending"
+    else:
+        order="ascending"
     country = (
-        alt.Chart(data, title=f"{metrics[metric]} - Top 10 Country for Year {yr}")
+        alt.Chart(data, title=f"{metrics[metric]} - {radio} 10 Countries for Year {yr}")
         .mark_bar()
         .encode(
             y=alt.Y("country", sort="-x", title="Country"),
@@ -583,10 +673,11 @@ def plot_bar_chart(metric, region, sub_region, yr):
         )
         .transform_window(
             rank="rank(life_expectancy)",
-            sort=[alt.SortField(metric, order="descending")],
+            sort=[alt.SortField(metric, order=order)],
         )
         .transform_filter((alt.datum.rank < 10))
-    ).properties(width=150, height=200)
+    ).properties(width=240, height=300)
+    
 
     return country.to_html()
 
