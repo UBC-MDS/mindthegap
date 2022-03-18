@@ -32,8 +32,13 @@ FILTER_STYLE = {"background-color": "#f8f9fa", "width": "14rem", "height": "100%
 filter_panel = dbc.Card(
     dbc.Col(
         [
+            html.Br(),
+            html.Br(),
+            
+            html.Br(),
             # control panel title
             html.H2("Control Panel", className="text-center"),
+            html.Br(),
             html.Br(),
             # metric radio button
             dbc.Row(
@@ -47,6 +52,7 @@ filter_panel = dbc.Card(
                     ),
                 ]
             ),
+            html.Br(),
             html.Br(),
             # continent drop down
             dbc.Row(
@@ -63,6 +69,7 @@ filter_panel = dbc.Card(
                 ]
             ),
             html.Br(),
+            html.Br(),
             # sub-region drop down
             dbc.Row(
                 [
@@ -71,19 +78,20 @@ filter_panel = dbc.Card(
                 ]
             ),
             html.Br(),
-            dbc.Row(
-                [
-                    html.H5("4. Country", className="text-left"),
-                    dcc.Dropdown(
-                        id="cntry",
-                        options=[
-                            {"label": c, "value": c}
-                            for c in gap["country"].dropna().unique()
-                        ],
-                        value=None,
-                    ),
-                ]
-            ),
+            html.Br(),
+            # dbc.Row(
+            #     [
+            #         html.H5("4. Country", className="text-left"),
+            #         dcc.Dropdown(
+            #             id="cntry",
+            #             options=[
+            #                 {"label": c, "value": c}
+            #                 for c in gap["country"].dropna().unique()
+            #             ],
+            #             value=None,
+            #         ),
+            #     ]
+            # ),
             html.Br(),
             html.Br(),
             # empty plot message
@@ -135,7 +143,7 @@ app.layout = dbc.Container(
         dbc.Row(
             [
                 # control panel
-                dbc.Col(filter_panel, md=3, lg=3, sm=3),
+                dbc.Col(filter_panel, md=5, lg=3, sm=3),
                 dbc.Col(
                     [
                         dbc.Row(
@@ -472,6 +480,7 @@ def plot_box_plot(metric, region, sub_region, yr):
         .configure_legend(labelFontSize=12)
         .properties(width=300, height=300)
         .configure_legend(gradientLength=900, gradientThickness=400)
+
     )
     return chart.to_html()
 
@@ -506,7 +515,44 @@ def plot_bubble_chart(metric, region, sub_region, yr):
     > plot_bubble_chart("child_mortality", "Asia", "Western Asia", 2015)
     """
     df = filter_data(region, sub_region, None, yr)
-    if region is None and sub_region is None:
+
+    if region is not None and sub_region is None:
+        chart = (
+            (
+                alt.Chart(df, title=f"{metrics[metric]} vs. GDP per Capita ($USD)")
+                .mark_circle()
+                .encode(
+                    alt.X(
+                        "log_income",
+                        title="GDP per Capita ($USD Log Scale)",
+                        scale=alt.Scale(zero=False),
+                    ),
+                    alt.Y(
+                        metric,
+                        title=metrics[metric],
+                        scale=alt.Scale(zero=False),
+                    ),
+                    alt.Size(
+                        "population",
+                        title="Population",
+                        scale=alt.Scale(range=(10, 1000)),
+                    ),
+                    alt.Color("sub_region", title="Sub Continent"),
+                    tooltip=[
+                        alt.Tooltip("region", title="Continent"),
+                        alt.Tooltip("sub_region", title="Sub region"),
+                        alt.Tooltip("country", title="Country"),
+                        alt.Tooltip(metric, title=metrics[metric]),
+                        alt.Tooltip("income", title="GDP per Capita", format=","),
+                    ],
+                )
+                .configure_axis(titleFontSize=14)
+            )
+            .properties(width=300, height=300)
+            .configure_legend(gradientLength=900, gradientThickness=400)
+        )
+
+    elif region is None and sub_region is None:
         chart = (
             (
                 alt.Chart(df, title=f"{metrics[metric]} vs. GDP per Capita ($USD)")
@@ -573,7 +619,7 @@ def plot_bubble_chart(metric, region, sub_region, yr):
                 )
                 .configure_axis(titleFontSize=14)
             )
-            .properties(width=200, height=200)
+            .properties(width=300, height=300)
             .configure_legend(gradientLength=900, gradientThickness=400)
         )
 
@@ -631,6 +677,7 @@ def plot_bar_chart(metric, region, radio, sub_region, yr):
         )
         .transform_filter((alt.datum.rank < 10))
     ).properties(width=240, height=300)
+    
 
     return country.to_html()
 
