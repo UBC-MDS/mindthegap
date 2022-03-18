@@ -27,7 +27,7 @@ metrics = {
 }
 
 ############################## CONTROL PANEL FILTERS ##############################
-FILTER_STYLE = {"background-color": "#f8f9fa", "width": "14rem", "height": "100%"}
+FILTER_STYLE = {"background-color": "#f8f9fa", "width": "18rem", "height": "100%"}
 
 filter_panel = dbc.Card(
     dbc.Col(
@@ -43,7 +43,7 @@ filter_panel = dbc.Card(
             # metric radio button
             dbc.Row(
                 [
-                    html.H5("1. Metric", className="text-left"),
+                    html.H5("1.  Metric", className="text-left"),
                     dbc.RadioItems(
                         id="metric",
                         value="life_expectancy",
@@ -57,7 +57,7 @@ filter_panel = dbc.Card(
             # continent drop down
             dbc.Row(
                 [
-                    html.H5("2. Continent", className="text-left"),
+                    html.H5("2.  Continent", className="text-left"),
                     dcc.Dropdown(
                         id="region",
                         options=[
@@ -73,7 +73,7 @@ filter_panel = dbc.Card(
             # sub-region drop down
             dbc.Row(
                 [
-                    html.H5("3. Sub Region", className="text-left"),
+                    html.H5("3.  Sub Continent", className="text-left"),
                     dcc.Dropdown(id="sub_region", value=None),
                 ]
             ),
@@ -94,10 +94,22 @@ filter_panel = dbc.Card(
             # ),
             html.Br(),
             html.Br(),
-            # empty plot message
-            html.Small(
-                "Note: If a plot is empty, this means that there is no data based on your selections."
+            
+            html.Br(),
+            dbc.Row(
+                [
+                    html.H5("Data Source", className="text-left"),
+                    dcc.Markdown("""Dataset for visualization of this dashbaord can be downloaded from [here](https://github.com/UBC-MDS/mindthegap/blob/main/data/gapminder.csv)
+            """
             ),
+                ]
+            ),
+            html.Br(),
+            html.Br(),
+            html.P("Note: If a plot is empty, this means that there is no data based on your selections.")
+            
+            
+            
         ],
     ),
     style=FILTER_STYLE,
@@ -134,7 +146,7 @@ app.layout = dbc.Container(
     [
         # title
         html.Div(
-            style={"textAlign": "center", "color": "Gray", "font-size": "26px"},
+            style={"textAlign": "center", "color": "black", "font-size": "26px"},
             children=[
                 html.H1("Mindthegap Dashboard"),
             ],
@@ -166,21 +178,73 @@ app.layout = dbc.Container(
                                             },
                                         ),
                                     ],
-                                    md=10
+                                    md=10, lg=10
                                 ),
-                                
+                                dbc.Row(),
+                                html.Br(),
+                                dbc.Row([
+            html.H5("World Map view by Metric", style={"width": "fit-content"}),
+            dbc.Col(
+                        [
+                            dbc.Button(
+                                id="map_tooltip",
+                                color="secondary",
+                                children=html.Strong("?"),
+                                size="sm",
+                                outline=True,
+                            ),
+                            dbc.Tooltip(
+                                "Choose metric from the control panel, drag and select the year to view the change of metric in the world using the slide bar. Select a continent to view a zoomed version of continent. You can hover over the plot for more details",
+                                target="map_tooltip",
+                                placement="bottom",
+                            ),
+                        ]                    )
+        ], style={"padding": "3vh 0"}),
+                                    
+                                    
+                                    
+
                                 dbc.Col([
                                     dbc.Card(
-                                    
-                                        dbc.Row([dbc.Col(worldmap)]),
+                                        dbc.Col(
+
+                                        dbc.Row(
+                                            [dbc.Col(
+                                                [
+                                                    worldmap
+                                                    ], 
+                                                    md=10, lg=12,
+                                                    ),
+                                                    # dbc.Col(html.P("Hrllo"))
+                                                    ]
+                                                    ), 
+                                                    style={ 'margin-left': '240px'}),
                                         
-                                            ),
+                                                    style={"border":"0px"}),
                                             html.Br(),
                                             html.Br(),
                                         dbc.Row(
                                             [
                                                 dbc.Col(
                                                     [
+                                                        dbc.Row([
+            html.H5("Top/Bottom countries by Metric", style={"width": "fit-content"}),
+            dbc.Col(
+                        [
+                            dbc.Button(
+                                id="bar_tooltip",
+                                color="secondary",
+                                children=html.Strong("?"),
+                                size="sm",
+                                outline=True,
+                            ),
+                            dbc.Tooltip(
+                                "Choose metric from the control panel, drag and select the year using the slide bar. Select a continent and/or sub-continent to view the top/bottom countries for that metric",
+                                target="bar_tooltip",
+                                placement="bottom",
+                            ),
+                        ]                    )
+        ], style={"padding": "3vh 0"}),
                                                     dbc.Card([
                                                         dbc.Card(
                                                             html.Div(
@@ -197,6 +261,7 @@ app.layout = dbc.Container(
                                                                         style={"align":"center"},
                                                                         labelStyle={"align":"center"}
                                                                     ),
+                                                                    
                                                                 ]
                                                             ),
                                                             style={"height":"43px"}
@@ -206,10 +271,28 @@ app.layout = dbc.Container(
                                                         html.Div(barchart)
                                                     ])
                                                     ], 
-                                                    md=6
+                                                    md=6,lg=6
                                                 ),
                                                 dbc.Col(
                                                     [
+                                                        dbc.Row([
+            html.H5("GDP/Income by Metric", style={"width": "fit-content"}),
+            dbc.Col(
+                        [
+                            dbc.Button(
+                                id="tab_tooltip",
+                                color="secondary",
+                                children=html.Strong("?"),
+                                size="sm",
+                                outline=True,
+                            ),
+                            dbc.Tooltip(
+                                "Choose metric from the control panel, drag and select the year using the slide bar. Select a continent and/or sub continent to view the changes in GDP w.r.t to population size and the changes in income by the parameters selected. You can hover over regions on the map",
+                                target="tab_tooltip",
+                                placement="bottom",
+                            ),
+                        ]                    )
+        ], style={"padding": "3vh 0"}),
                                                         dbc.Card([
                                                         html.Div(
                                                             dbc.Tabs(
@@ -230,11 +313,11 @@ app.layout = dbc.Container(
                                                         html.Div(id="tab-content")
                                                         ])
                                                         ],
-                                                md=6),
+                                                md=6, lg=6),
                                             ]
                                         ),
                                     ],
-                                    md=10
+                                    md=10, lg=10
                                 ),
                             ]
                         )
@@ -478,7 +561,7 @@ def plot_box_plot(metric, region, sub_region, yr):
         )
         .configure_axis(labelFontSize=12, titleFontSize=14)
         .configure_legend(labelFontSize=12)
-        .properties(width=300, height=300)
+        .properties(width=450, height=300)
         .configure_legend(gradientLength=900, gradientThickness=400)
 
     )
@@ -548,8 +631,8 @@ def plot_bubble_chart(metric, region, sub_region, yr):
                 )
                 .configure_axis(titleFontSize=14)
             )
-            .properties(width=300, height=300)
-            .configure_legend(gradientLength=900, gradientThickness=400)
+            .properties(width=420, height=300)
+            # .configure_legend(gradientLength=900, gradientThickness=400)
         )
 
     elif region is None and sub_region is None:
@@ -676,8 +759,8 @@ def plot_bar_chart(metric, region, radio, sub_region, yr):
             sort=[alt.SortField(metric, order=order)],
         )
         .transform_filter((alt.datum.rank < 10))
-    ).properties(width=240, height=300)
-    
+    ).properties(width=410, height=300)
+
 
     return country.to_html()
 
