@@ -2,7 +2,7 @@
 
 You can find both of our apps:
 DashPy - [here](https://dsci532-2022-mindthegap.herokuapp.com/)
-DashR – [here]()
+DashR – [here](https://dsci532-2022-mindthegap-r.herokuapp.com/)
 
 ## Introduction 
 Overall we are quite happy with the final result, as we believe it is very easy to use both of our DashPy and DashR apps. We have created two sets of dashboards that are very user friendly and easy to understand. The interactions between the filter selections and the graphs are all working seamlessly and the users should be able to derive the information they need. The feedback we received from another peer group also aligns as we were told that DashPy is easy to use and read. We were also able to improve the DashPy according to our plan outlined in Milestone 2 reflection and these enhancements are summarized as below.   
