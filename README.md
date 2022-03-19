@@ -21,7 +21,7 @@ You can find the interactive dashboard at this [link](https://dsci532-2022-mindt
 
 ## How to use the dashboard
 
-![](img/mindthegap.gif)
+![](img/mindthegap-final.gif)
 
 ### Control panel
 
