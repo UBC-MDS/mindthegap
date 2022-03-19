@@ -456,7 +456,7 @@ def plot_world_map(metric, region, yr):
                 tooltip=["country:O", metric + ":Q"],
                 color=alt.Color(metric + ":Q", title=metrics[metric]),
             )
-            .properties(width=750, height=350)
+            .properties(width=900, height=350)
         )
 
     else:
@@ -489,7 +489,7 @@ def plot_world_map(metric, region, yr):
                 color=alt.Color(metric + ":Q", title=metrics[metric]),
             )
             .project(type="naturalEarth1", scale=scl, translate=trans)
-            .properties(width=750, height=350)
+            .properties(width=900, height=350)
         )
     return chart.to_html()
 
