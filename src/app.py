@@ -79,19 +79,7 @@ filter_panel = dbc.Card(
             ),
             html.Br(),
             html.Br(),
-            # dbc.Row(
-            #     [
-            #         html.H5("4. Country", className="text-left"),
-            #         dcc.Dropdown(
-            #             id="cntry",
-            #             options=[
-            #                 {"label": c, "value": c}
-            #                 for c in gap["country"].dropna().unique()
-            #             ],
-            #             value=None,
-            #         ),
-            #     ]
-            # ),
+            
             html.Br(),
             html.Br(),
             
@@ -215,10 +203,9 @@ app.layout = dbc.Container(
                                                     ], 
                                                     md=10, lg=12,
                                                     ),
-                                                    # dbc.Col(html.P("Hrllo"))
                                                     ]
                                                     ), 
-                                                    style={ 'margin-left': '240px'}),
+                                                    ),
                                         
                                                     style={"border":"0px"}),
                                             html.Br(),
@@ -345,9 +332,9 @@ def filter_data(region, sub_region, country, yr):
     --------
     region: string
         Selection from the Region filter
-    sub_region: sting
+    sub_region: string
         Selection from Sub Region filter
-    country: sting
+    country: string
         Selection from Country filter
     yr: string
         Selection from  Year
@@ -469,7 +456,7 @@ def plot_world_map(metric, region, yr):
                 tooltip=["country:O", metric + ":Q"],
                 color=alt.Color(metric + ":Q", title=metrics[metric]),
             )
-            .properties(width=750, height=350)
+            .properties(width=900, height=350)
         )
 
     else:
@@ -502,7 +489,7 @@ def plot_world_map(metric, region, yr):
                 color=alt.Color(metric + ":Q", title=metrics[metric]),
             )
             .project(type="naturalEarth1", scale=scl, translate=trans)
-            .properties(width=750, height=350)
+            .properties(width=900, height=350)
         )
     return chart.to_html()
 
@@ -523,7 +510,7 @@ def plot_box_plot(metric, region, sub_region, yr):
         Selection from statistic of interest filter
     region: string
         Selection from the region filter
-    sub_region: sting
+    sub_region: string
         Selection from sub region filter
     yr: integer
         Year for which the data is displayed, from Year filter
@@ -584,7 +571,7 @@ def plot_bubble_chart(metric, region, sub_region, yr):
         Selection from statistic of interest filter
     region: string
         Selection from the region filter
-    sub_region: sting
+    sub_region: string
         Selection from sub region filter
     yr: integer
         Year for which the data is displayed, from Year filter
@@ -728,7 +715,7 @@ def plot_bar_chart(metric, region, radio, sub_region, yr):
         Selection from the region filter
     radio: int
         Selection of radio button as Top or Bottom
-    sub_region: sting
+    sub_region: string
         Selection from sub region filter
     yr: integer
         Year for which the data is displayed, from Year filter
